@@ -1,100 +1,89 @@
-# Terraform Drift Analyzer
+# Vision Of Chosen FE - Nền tảng Phân Tích Drift Terraform với AI
 
-AI-powered Terraform infrastructure drift detection and analysis platform with real-time AWS integration.
+Nền tảng phát hiện, phân tích drift hạ tầng Terraform tích hợp AI, kết nối thời gian thực với AWS, giao diện hiện đại, báo cáo trực quan và hỗ trợ vận hành DevOps.
 
-## 🚀 Features
+## 🚀 Tính năng nổi bật
 
-### 🔍 **Drift Detection**
-- **Real-time Analysis**: Continuous monitoring of Terraform infrastructure
-- **AI-Powered Insights**: Intelligent drift analysis with risk assessment
-- **Multi-format Support**: `.tfplan`, `.tfstate`, `.json`, `.tf` files
-- **Risk Classification**: Automatic categorization (Low, Medium, High)
+### 🔍 Phát hiện Drift & Phân tích AI
 
-### 🤖 **AI Assistant**
-- **Interactive Chat**: Natural language queries about infrastructure
-- **File Upload**: Drag & drop Terraform files for instant analysis
-- **AWS Integration**: Direct connection to AWS services
-- **Smart Recommendations**: AI-generated solutions and best practices
+- **Giám sát liên tục**: Theo dõi trạng thái hạ tầng Terraform, phát hiện drift (sai lệch giữa thực tế và code).
+- **Phân tích AI**: Đánh giá rủi ro, giải thích nguyên nhân drift, gợi ý khắc phục tự động.
+- **Hỗ trợ nhiều định dạng**: Nhận file `.tfplan`, `.tfstate`, `.json`, `.tf`.
+- **Phân loại rủi ro**: Tự động phân loại drift (Thấp, Trung bình, Cao).
 
-### 📊 **Analytics & Reporting**
-- **Infrastructure Metrics**: Real-time resource monitoring
-- **Cost Analysis**: AWS cost tracking and optimization suggestions
-- **Compliance Monitoring**: Security and compliance status
-- **Historical Trends**: Drift detection over time
+### 🤖 Trợ lý AI & Tương tác
 
-### 🔧 **Management Tools**
-- **Scan History**: Complete audit trail of all scans
-- **Chat History**: Persistent conversation logs with search
-- **Settings Management**: AWS credentials and notification preferences
-- **Email Alerts**: Configurable notifications for critical events
+- **Chat AI tự nhiên**: Đặt câu hỏi về hạ tầng, nhận giải thích, gợi ý tối ưu, bảo mật, chi phí.
+- **Upload file & dán nội dung**: Phân tích nhanh file Terraform hoặc dán nội dung trực tiếp.
+- **Lưu lịch sử chat**: Xem lại, tìm kiếm, xuất lịch sử hội thoại.
 
-## 🛠️ Tech Stack
+### 📊 Báo cáo & Phân tích
+
+- **Báo cáo scan**: Xem chi tiết từng lần quét, lịch sử drift, thống kê rủi ro, cảnh báo.
+- **Biểu đồ trực quan**: Phân phối tài nguyên, xu hướng drift, trạng thái tuân thủ, chi phí.
+- **Theo dõi log AWS**: Xem log real-time từ Terraform & AWS (EC2, S3, RDS, IAM, CloudFormation...)
+
+### 🔧 Quản lý & Cấu hình
+
+- **Quản lý tài khoản**: Đăng ký, đăng nhập, bảo mật.
+- **Kết nối AWS**: Cấu hình, kiểm tra kết nối, lưu thông tin IAM an toàn.
+- **Cài đặt thông báo**: Nhận cảnh báo qua email khi phát hiện drift, sự kiện quan trọng.
+
+## 🛠️ Công nghệ sử dụng
 
 - **Frontend**: Next.js 15, React 18, TypeScript
-- **UI Components**: shadcn/ui, Tailwind CSS, Radix UI
-- **Charts**: Recharts for data visualization
-- **Icons**: Lucide React
-- **State Management**: React Hooks, Local Storage
-- **Styling**: CSS Variables, Dark/Light themes
+- **UI**: shadcn/ui, Tailwind CSS, Radix UI, Lucide React
+- **Biểu đồ**: Recharts
+- **Quản lý trạng thái**: React Hooks, Local Storage
+- **Theme**: Hỗ trợ sáng/tối, CSS Variables
 
-## 📦 Installation
+## 📦 Cài đặt & Khởi động
 
-### Prerequisites
-- Node.js 18+ 
-- npm or yarn
-- AWS Account (for infrastructure analysis)
+### Yêu cầu
 
-### Quick Start
+- Node.js 18+
+- npm hoặc pnpm
+- Tài khoản AWS (nếu muốn phân tích hạ tầng thực tế)
 
-\`\`\`bash
-# Clone the repository
-git clone https://github.com/your-org/terraform-drift-analyzer.git
-cd terraform-drift-analyzer
+### Hướng dẫn nhanh
 
-# Install dependencies
+```bash
+# Clone dự án
+https://github.com/anhtnpro12/VisionOfChosen_FE.git
+cd VisionOfChosen_FE
+
+# Cài đặt dependencies
 npm install
 
-# Start development server
+# Chạy server phát triển
 npm run dev
-\`\`\`
+```
 
-### Using shadcn CLI (Recommended)
+### Cài UI shadcn (khuyên dùng)
 
-\`\`\`bash
-# Install with shadcn CLI
+```bash
 npx shadcn@latest init
-
-# Add required components
 npx shadcn@latest add button card input textarea tabs sidebar
-\`\`\`
+```
 
-## 🔧 Configuration
+## 🔧 Cấu hình môi trường
 
-### Environment Variables
+Tạo file `.env.local`:
 
-Create a \`.env.local\` file:
-
-\`\`\`env
-# AWS Configuration
+```env
 AWS_ACCESS_KEY_ID=your_access_key
 AWS_SECRET_ACCESS_KEY=your_secret_key
 AWS_DEFAULT_REGION=us-east-1
-
-# Email Notifications
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
 SMTP_USER=your_email@gmail.com
 SMTP_PASS=your_app_password
-
-# Application
 NEXT_PUBLIC_APP_URL=http://localhost:3000
-\`\`\`
+```
 
-### AWS IAM Permissions
+### Phân quyền AWS IAM tối thiểu
 
-Required IAM permissions for Terraform analysis:
-
-\`\`\`json
+```json
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -114,249 +103,97 @@ Required IAM permissions for Terraform analysis:
     }
   ]
 }
-\`\`\`
+```
 
-## 🚦 Usage
+## 🚦 Hướng dẫn sử dụng
 
-### 1. Authentication
-- Navigate to \`/auth/login\`
-- Create account or sign in
-- Access dashboard at \`/dashboard\`
+### 1. Đăng nhập/Đăng ký
 
-### 2. AWS Connection
-- Go to **Settings** → **AWS Connection**
-- Configure AWS credentials
-- Test connection
-- Save settings
+- Truy cập `/auth/login` hoặc `/auth/register` để tạo tài khoản.
+- Sau khi đăng nhập, chuyển đến `/dashboard`.
 
-### 3. Infrastructure Analysis
-- **Upload Files**: Drag & drop Terraform files
-- **Chat with AI**: Ask questions about infrastructure
-- **View Reports**: Check scan history and results
-- **Monitor Metrics**: Track costs and compliance
+### 2. Kết nối AWS
 
-### 4. Notifications
-- **Settings** → **Email Notifications**
-- Add recipient emails
-- Configure alert types
-- Enable/disable notifications
+- Vào **Settings → AWS Connection**.
+- Nhập thông tin IAM, kiểm tra kết nối, lưu cấu hình.
 
-## 📁 Project Structure
+### 3. Phân tích hạ tầng
 
-\`\`\`
-terraform-drift-analyzer/
-├── app/                          # Next.js App Router
-│   ├── auth/                     # Authentication pages
-│   │   ├── login/
-│   │   └── register/
-│   ├── dashboard/                # Main application
-│   │   ├── reports/              # Scan reports & history
-│   │   ├── scan/[id]/           # Scan detail pages
-│   │   ├── settings/            # Configuration
-│   │   └── page.tsx             # Dashboard home
-│   ├── globals.css              # Global styles
-│   └── layout.tsx               # Root layout
-├── components/                   # Reusable components
-│   ├── ui/                      # shadcn/ui components
-│   ├── ai-chat-interface.tsx    # AI chat component
-│   ├── app-sidebar.tsx          # Navigation sidebar
-│   ├── drift-card.tsx           # Drift display
-│   ├── scan-history-table.tsx   # History table
-│   └── upload-dialog.tsx        # File upload
-├── hooks/                       # Custom React hooks
-├── lib/                         # Utility functions
-└── public/                      # Static assets
-\`\`\`
+- **Upload file**: Kéo thả hoặc chọn file Terraform.
+- **Dán nội dung**: Chuyển sang tab "Paste Text" để dán nội dung.
+- **Chat với AI**: Đặt câu hỏi về drift, bảo mật, tối ưu chi phí...
+- **Xem báo cáo**: Vào **Scan Reports** để xem lịch sử, chi tiết từng lần quét.
+- **Theo dõi log**: Xem log AWS, Terraform real-time trên dashboard.
 
-## 🎨 UI Components
+### 4. Thông báo
 
-### Core Components
-- **Sidebar Navigation**: Collapsible sidebar with menu items
-- **AI Chat Interface**: Interactive chat with file upload
-- **Drift Cards**: Expandable drift analysis cards
-- **Scan History**: Sortable table with filters
-- **Settings Forms**: AWS and notification configuration
+- Vào **Settings → Email Notifications** để thêm email nhận cảnh báo.
+- Cấu hình loại thông báo, bật/tắt tùy ý.
 
-### Design System
-- **Colors**: Green theme with light/dark mode support
-- **Typography**: Inter font family
-- **Spacing**: Consistent 4px grid system
-- **Components**: shadcn/ui component library
+## 📁 Cấu trúc dự án
 
-## 🔌 API Integration
+```
+VisionOfChosen_FE/
+├── app/
+│   ├── auth/ (login, register)
+│   ├── dashboard/ (reports, scan/[id], settings)
+│   ├── globals.css, layout.tsx
+├── components/
+│   ├── ui/ (button, card, table...)
+│   ├── ai-chat-interface.tsx, app-sidebar.tsx, drift-card.tsx, scan-history-table.tsx, upload-dialog.tsx...
+├── hooks/
+├── lib/
+├── public/
+```
 
-### AWS Services
-- **EC2**: Instance monitoring and analysis
-- **S3**: Bucket configuration and security
-- **RDS**: Database settings and backups
-- **IAM**: Role and policy analysis
-- **CloudFormation**: Stack drift detection
+## 🎨 UI & Design System
 
-### Terraform Integration
-- **State Files**: Parse and analyze \`.tfstate\`
-- **Plan Files**: Review \`.tfplan\` changes
-- **Configuration**: Analyze \`.tf\` files
-- **Modules**: Support for Terraform modules
+- **Sidebar**: Menu chính, điều hướng nhanh.
+- **AI Chat**: Giao diện chat, upload file, hỏi đáp AI.
+- **Drift Card**: Thẻ phân tích drift, giải thích AI, gợi ý khắc phục.
+- **Scan History Table**: Bảng lịch sử quét, lọc, xem chi tiết.
+- **Notification Center**: Trung tâm thông báo, cảnh báo realtime.
+- **Theme**: Xanh lá chủ đạo, hỗ trợ dark/light mode, font Inter.
+- **Biểu đồ**: Recharts, trực quan hóa tài nguyên, drift, compliance, chi phí.
 
-## 📈 Monitoring & Analytics
+## 🔌 Tích hợp & API
 
-### Metrics Tracked
-- **Resource Count**: Total infrastructure resources
-- **Drift Detection**: Number of drifts over time
-- **Cost Analysis**: Monthly AWS spending
-- **Compliance Score**: Security and best practices
-- **Scan Success Rate**: Analysis completion rate
+- **AWS**: EC2, S3, RDS, IAM, CloudFormation...
+- **Terraform**: Phân tích file `.tfstate`, `.tfplan`, `.tf`, module.
+- **Email**: Gửi cảnh báo, báo cáo định kỳ.
 
-### Reporting Features
-- **Real-time Dashboards**: Live infrastructure status
-- **Historical Trends**: Time-series drift analysis
-- **Export Options**: PDF, JSON, CSV reports
-- **Email Summaries**: Weekly/monthly reports
+## 🔒 Bảo mật
 
-## 🔒 Security
+- **Mã hóa thông tin AWS**: Lưu trữ an toàn, không ghi log secret.
+- **Truyền tải HTTPS**
+- **Kiểm soát truy cập**: Phân quyền, audit log.
+- **Khuyến nghị**: Sử dụng IAM role, phân quyền tối thiểu, không commit secret.
 
-### Data Protection
-- **Encrypted Storage**: AWS credentials encrypted at rest
-- **Secure Transmission**: HTTPS for all communications
-- **Access Control**: Role-based permissions
-- **Audit Logging**: Complete activity tracking
+## 🚀 Triển khai
 
-### Best Practices
-- **IAM Roles**: Use IAM roles instead of access keys
-- **Least Privilege**: Minimal required permissions
-- **Regular Rotation**: Rotate credentials regularly
-- **Environment Variables**: Never commit secrets to code
+- **Vercel**: `npm i -g vercel && vercel`
+- **Docker**: Có sẵn Dockerfile, build & run dễ dàng.
+- **Manual**: `npm run build && npm start`
 
-## 🚀 Deployment
+## 🥯 Kiểm thử
 
-### Vercel (Recommended)
+- `npm test` (unit), `npm run test:coverage`, `npm run test:e2e`
 
-\`\`\`bash
-# Install Vercel CLI
-npm i -g vercel
+## 🤝 Đóng góp
 
-# Deploy to Vercel
-vercel
+- Fork, tạo branch, commit, mở Pull Request.
+- Viết test, tuân thủ style TypeScript, shadcn/ui.
 
-# Set environment variables
-vercel env add AWS_ACCESS_KEY_ID
-vercel env add AWS_SECRET_ACCESS_KEY
-\`\`\`
+## 📝 Giấy phép
 
-### Docker
+MIT License.
 
-\`\`\`dockerfile
-FROM node:18-alpine
+## 📊 Liên hệ & Hỗ trợ
 
-WORKDIR /app
-COPY package*.json ./
-RUN npm ci --only=production
-
-COPY . .
-RUN npm run build
-
-EXPOSE 3000
-CMD ["npm", "start"]
-\`\`\`
-
-### Manual Deployment
-
-\`\`\`bash
-# Build for production
-npm run build
-
-# Start production server
-npm start
-\`\`\`
-
-## 🧪 Testing
-
-\`\`\`bash
-# Run tests
-npm test
-
-# Run tests with coverage
-npm run test:coverage
-
-# Run E2E tests
-npm run test:e2e
-\`\`\`
-
-## 🤝 Contributing
-
-1. **Fork** the repository
-2. **Create** a feature branch (\`git checkout -b feature/amazing-feature\`)
-3. **Commit** your changes (\`git commit -m 'Add amazing feature'\`)
-4. **Push** to the branch (\`git push origin feature/amazing-feature\`)
-5. **Open** a Pull Request
-
-### Development Guidelines
-- Follow TypeScript best practices
-- Use shadcn/ui components when possible
-- Write tests for new features
-- Update documentation
-- Follow conventional commit messages
-
-## 📝 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🆘 Support
-
-### Documentation
-- **API Reference**: \`/docs/api\`
-- **Component Library**: \`/docs/components\`
-- **Deployment Guide**: \`/docs/deployment\`
-
-### Community
-- **GitHub Issues**: Bug reports and feature requests
-- **Discussions**: Community Q&A and ideas
-- **Discord**: Real-time chat support
-
-### Enterprise Support
-For enterprise support and custom implementations:
-- 📧 Email: enterprise@terraform-analyzer.com
-- 🌐 Website: https://terraform-analyzer.com
-- 📞 Phone: +1 (555) 123-4567
-
-## 🗺️ Roadmap
-
-### Q1 2024
-- [ ] Multi-cloud support (Azure, GCP)
-- [ ] Advanced AI recommendations
-- [ ] Custom rule engine
-- [ ] API endpoints
-
-### Q2 2024
-- [ ] Terraform Cloud integration
-- [ ] GitOps workflows
-- [ ] Advanced analytics
-- [ ] Mobile app
-
-### Q3 2024
-- [ ] Enterprise SSO
-- [ ] Advanced RBAC
-- [ ] Compliance frameworks
-- [ ] Custom dashboards
-
-## 📊 Changelog
-
-### v1.0.0 (Current)
-- ✅ Initial release
-- ✅ AI-powered drift detection
-- ✅ AWS integration
-- ✅ Chat interface
-- ✅ Scan history
-- ✅ Settings management
-
-### v0.9.0
-- ✅ Beta release
-- ✅ Core functionality
-- ✅ UI components
-- ✅ Basic reporting
+- **GitHub Issues**: Báo lỗi, đề xuất tính năng.
+- **Email**: enterprise@terraform-analyzer.com
+- **Website**: https://terraform-analyzer.com
 
 ---
 
-**Made with ❤️ by the Terraform Drift Analyzer Team**
-
-*Empowering DevOps teams with AI-driven infrastructure insights*
+_Dự án dành cho DevOps, Cloud Engineer, Security Engineer muốn kiểm soát drift, tối ưu vận hành hạ tầng IaC hiện đại._
