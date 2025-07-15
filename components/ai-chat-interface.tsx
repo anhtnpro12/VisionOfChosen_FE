@@ -25,6 +25,7 @@ import {
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { ChatHistoryViewer } from "@/components/chat-history-viewer"
+import dashboardApi from "../api/dashboardApi";
 
 interface Message {
   id: string
@@ -234,20 +235,21 @@ export function AiChatInterface() {
     setInputMessage("")
     setIsTyping(true)
 
-    // Simulate AI processing
-    setTimeout(() => {
+    try {
+      // Hardcode sessionId và userId tạm thời
+      const payload = {
+        sessionId: currentChatId,
+        userId: "user-123", // hardcode
+        message: inputMessage,
+      }
+      const response = await dashboardApi.askAI(payload)
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
         type: "ai",
-        content: generateAIResponse(inputMessage),
+        content: response.data.message, // Nếu muốn hiển thị role: `${response.data.role}: ${response.data.message}`
         timestamp: new Date(),
-        metadata: {
-          awsRegion: "us-east-1",
-          resourceCount: Math.floor(Math.random() * 50) + 10,
-          action: "terraform_scan",
-        },
+        // Có thể bổ sung metadata nếu API trả về
       }
-
       setChatSessions((prev) =>
         prev.map((chat) =>
           chat.id === currentChatId
@@ -260,18 +262,15 @@ export function AiChatInterface() {
         ),
       )
       updateChatPreview(currentChatId, aiResponse)
+    } catch (error) {
+      toast({
+        title: "Lỗi khi gọi AI",
+        description: "Không thể lấy phản hồi từ AI. Vui lòng thử lại.",
+        variant: "destructive",
+      })
+    } finally {
       setIsTyping(false)
-    }, 2000)
-  }
-
-  const generateAIResponse = (userInput: string) => {
-    const responses = [
-      `Đã quét AWS infrastructure trong region us-east-1. Phát hiện ${Math.floor(Math.random() * 20) + 5} tài nguyên Terraform. Đang phân tích drift...`,
-      `Kết nối AWS thành công! Tìm thấy ${Math.floor(Math.random() * 15) + 3} S3 buckets và ${Math.floor(Math.random() * 10) + 2} EC2 instances. Có ${Math.floor(Math.random() * 5)} drift cần xem xét.`,
-      `Phân tích hoàn tất! Infrastructure của bạn có ${Math.floor(Math.random() * 8) + 2} cảnh báo bảo mật và ${Math.floor(Math.random() * 12) + 5} recommendations để tối ưu cost.`,
-      `Đã sync với Terraform state. Phát hiện ${Math.floor(Math.random() * 6) + 1} thay đổi chưa được apply và ${Math.floor(Math.random() * 4) + 1} resources bị drift.`,
-    ]
-    return responses[Math.floor(Math.random() * responses.length)]
+    }
   }
 
   const createNewChat = () => {
