@@ -3,53 +3,16 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Eye, Download } from "lucide-react"
+import { Eye, Download, AlertTriangle } from "lucide-react"
 import Link from "next/link"
+import type { ScanItem } from "@/api/dashboardApi"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
-const scanHistory = [
-  {
-    id: "scan-001",
-    fileName: "production-infrastructure.tfplan",
-    scanDate: "2024-01-15 14:30:00",
-    driftCount: 7,
-    riskLevel: "high",
-    status: "completed",
-  },
-  {
-    id: "scan-002",
-    fileName: "staging-environment.tfstate",
-    scanDate: "2024-01-14 09:15:00",
-    driftCount: 3,
-    riskLevel: "medium",
-    status: "completed",
-  },
-  {
-    id: "scan-003",
-    fileName: "dev-infrastructure.tfplan",
-    scanDate: "2024-01-13 16:45:00",
-    driftCount: 1,
-    riskLevel: "low",
-    status: "completed",
-  },
-  {
-    id: "scan-004",
-    fileName: "network-config.tfstate",
-    scanDate: "2024-01-12 11:20:00",
-    driftCount: 0,
-    riskLevel: "low",
-    status: "completed",
-  },
-  {
-    id: "scan-005",
-    fileName: "security-policies.tfplan",
-    scanDate: "2024-01-11 13:10:00",
-    driftCount: 12,
-    riskLevel: "high",
-    status: "completed",
-  },
-]
+interface ScanHistoryTableProps {
+  scanHistory: ScanItem[]
+}
 
-export function ScanHistoryTable() {
+export function ScanHistoryTable({ scanHistory }: ScanHistoryTableProps) {
   const getRiskBadge = (riskLevel: string) => {
     const variants = {
       low: "secondary",
@@ -77,6 +40,21 @@ export function ScanHistoryTable() {
       <Badge variant="outline" className="text-yellow-600 border-yellow-600">
         Đang xử lý
       </Badge>
+    )
+  }
+
+  if (!scanHistory || scanHistory.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center py-12 text-center">
+        <AlertTriangle className="h-12 w-12 text-muted-foreground mb-4" />
+        <h3 className="text-lg font-semibold mb-2">Không có dữ liệu quét</h3>
+        <p className="text-muted-foreground mb-4">
+          Chưa có lịch sử quét nào được tìm thấy. Hãy thực hiện quét đầu tiên để xem dữ liệu ở đây.
+        </p>
+        <Button asChild>
+          <Link href="/dashboard/scan">Thực hiện quét mới</Link>
+        </Button>
+      </div>
     )
   }
 

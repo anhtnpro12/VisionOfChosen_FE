@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -12,34 +12,33 @@ import { Input } from "@/components/ui/input"
 import { FileText, AlertTriangle, Clock, TrendingUp, Download, RefreshCw, Search, Filter } from "lucide-react"
 import { ScanHistoryTable } from "@/components/scan-history-table"
 import { useSearchParams } from "next/navigation"
+import dashboardApi, { type ScanDashboardResponse } from "@/api/dashboardApi"
+import { Skeleton } from "@/components/ui/skeleton"
 
 export default function ReportsPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedTimeRange, setSelectedTimeRange] = useState("7d")
+  const [dashboardData, setDashboardData] = useState<ScanDashboardResponse | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  // Mock data for latest scan
-  const latestScan = {
-    id: "scan-001",
-    fileName: "production-infrastructure.tfplan",
-    scanDate: "2024-01-15 14:30:00",
-    driftCount: 7,
-    riskLevel: "high",
-    warnings: 3,
-    status: "completed",
-    duration: "2m 34s",
-    resourcesScanned: 45,
-    changesDetected: 12,
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      const response = await dashboardApi.getScanDashboard()
+      setDashboardData(response.data)
+    } catch (err) {
+      console.error("Error fetching dashboard data:", err)
+      setError("Không thể tải dữ liệu dashboard. Vui lòng thử lại.")
+    } finally {
+      setLoading(false)
+    }
   }
 
-  // Mock data for recent scans summary
-  const scanSummary = {
-    totalScans: 28,
-    successfulScans: 25,
-    failedScans: 3,
-    avgDriftCount: 4.2,
-    totalDriftsFound: 118,
-    criticalIssues: 15,
-  }
+  useEffect(() => {
+    fetchDashboardData()
+  }, [])
 
   const riskColor = {
     low: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
@@ -49,6 +48,81 @@ export default function ReportsPage() {
 
   const searchParams = useSearchParams()
   const defaultTab = searchParams.get("tab") === "history" ? "history" : "latest"
+
+  if (loading) {
+    return (
+      <div className="flex flex-col min-h-screen">
+        <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="flex h-14 items-center px-4">
+            <SidebarTrigger />
+            <div className="ml-4 flex items-center justify-between w-full">
+              <div>
+                <h1 className="text-xl font-semibold">Scan Reports</h1>
+                <p className="text-sm text-muted-foreground">Tóm tắt và lịch sử các lần quét Terraform</p>
+              </div>
+            </div>
+          </div>
+        </header>
+        <div className="flex-1 space-y-6 p-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <Card key={i}>
+                <CardContent className="p-4">
+                  <Skeleton className="h-4 w-24 mb-2" />
+                  <Skeleton className="h-8 w-16 mb-1" />
+                  <Skeleton className="h-3 w-20" />
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-6 w-48 mb-2" />
+              <Skeleton className="h-4 w-64" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-32 w-full" />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col min-h-screen">
+        <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="flex h-14 items-center px-4">
+            <SidebarTrigger />
+            <div className="ml-4 flex items-center justify-between w-full">
+              <div>
+                <h1 className="text-xl font-semibold">Scan Reports</h1>
+                <p className="text-sm text-muted-foreground">Tóm tắt và lịch sử các lần quét Terraform</p>
+              </div>
+            </div>
+          </div>
+        </header>
+        <div className="flex-1 flex items-center justify-center p-6">
+          <Alert className="max-w-md">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription>
+              {error}
+              <Button variant="link" className="p-0 h-auto ml-2" onClick={fetchDashboardData}>
+                Thử lại
+              </Button>
+            </AlertDescription>
+          </Alert>
+        </div>
+      </div>
+    )
+  }
+
+  if (!dashboardData) {
+    return null
+  }
+
+  const { latestScan, scanSummary, scanHistory } = dashboardData
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -61,7 +135,7 @@ export default function ReportsPage() {
               <p className="text-sm text-muted-foreground">Tóm tắt và lịch sử các lần quét Terraform</p>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="sm">
+              <Button variant="outline" size="sm" onClick={fetchDashboardData}>
                 <RefreshCw className="h-4 w-4 mr-2" />
                 Refresh
               </Button>
@@ -275,7 +349,7 @@ export default function ReportsPage() {
                 <CardDescription>Danh sách đầy đủ các lần phân tích Terraform infrastructure</CardDescription>
               </CardHeader>
               <CardContent>
-                <ScanHistoryTable />
+                <ScanHistoryTable scanHistory={scanHistory} />
               </CardContent>
             </Card>
           </TabsContent>

@@ -7,18 +7,10 @@ import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { ChevronDown, ChevronUp, Bot, AlertTriangle, Info } from "lucide-react"
+import type { DriftItem } from "@/api/dashboardApi"
 
 interface DriftCardProps {
-  drift: {
-    id: string
-    resourceType: string
-    resourceName: string
-    riskLevel: string
-    beforeState: Record<string, any>
-    afterState: Record<string, any>
-    aiExplanation: string
-    aiAction: string
-  }
+  drift: DriftItem
 }
 
 export function DriftCard({ drift }: DriftCardProps) {
@@ -50,7 +42,7 @@ export function DriftCard({ drift }: DriftCardProps) {
   }
 
   const handleAskAI = () => {
-    console.log(`Asking AI about ${drift.id}:`, aiQuestion)
+    console.log(`Asking AI about ${drift.resourceName}:`, aiQuestion)
     setAiQuestion("")
   }
 
@@ -86,13 +78,13 @@ export function DriftCard({ drift }: DriftCardProps) {
               <div className="space-y-2">
                 <h4 className="font-medium text-sm">Trạng thái trước</h4>
                 <div className="bg-red-50 dark:bg-red-950 p-3 rounded-lg border border-red-100 dark:border-red-900">
-                  <pre className="text-xs overflow-x-auto">{JSON.stringify(drift.beforeState, null, 2)}</pre>
+                  <pre className="text-xs overflow-x-auto">{JSON.stringify(drift.beforeStateJson, null, 2)}</pre>
                 </div>
               </div>
               <div className="space-y-2">
                 <h4 className="font-medium text-sm">Trạng thái sau</h4>
                 <div className="bg-green-50 dark:bg-green-950 p-3 rounded-lg border border-green-100 dark:border-green-900">
-                  <pre className="text-xs overflow-x-auto">{JSON.stringify(drift.afterState, null, 2)}</pre>
+                  <pre className="text-xs overflow-x-auto">{JSON.stringify(drift.afterStateJson, null, 2)}</pre>
                 </div>
               </div>
             </div>
@@ -114,21 +106,6 @@ export function DriftCard({ drift }: DriftCardProps) {
               <div className="bg-amber-50 dark:bg-amber-950 p-3 rounded-lg border border-amber-100 dark:border-amber-900">
                 <pre className="text-sm whitespace-pre-wrap">{drift.aiAction}</pre>
               </div>
-            </div>
-
-            {/* Ask AI */}
-            <div className="space-y-3 border-t pt-4">
-              <h4 className="font-medium text-sm">Hỏi thêm AI về drift này</h4>
-              <Textarea
-                placeholder="Ví dụ: Tại sao thay đổi này lại có mức rủi ro cao?"
-                value={aiQuestion}
-                onChange={(e) => setAiQuestion(e.target.value)}
-                rows={2}
-              />
-              <Button size="sm" onClick={handleAskAI} disabled={!aiQuestion.trim()}>
-                <Bot className="mr-2 h-4 w-4" />
-                Hỏi AI
-              </Button>
             </div>
           </CardContent>
         </CollapsibleContent>
