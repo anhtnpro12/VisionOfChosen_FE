@@ -17,7 +17,7 @@ interface DriftCardProps {
     beforeState: Record<string, any>
     afterState: Record<string, any>
     aiExplanation: string
-    aiSuggestion: string
+    aiAction: string
   }
 }
 
@@ -110,9 +110,9 @@ export function DriftCard({ drift }: DriftCardProps) {
 
             {/* AI Suggestions */}
             <div className="space-y-2">
-              <h4 className="font-medium text-sm">Gợi ý giải pháp</h4>
+              <h4 className="font-medium text-sm">Các bước thực hiện</h4>
               <div className="bg-amber-50 dark:bg-amber-950 p-3 rounded-lg border border-amber-100 dark:border-amber-900">
-                <pre className="text-sm whitespace-pre-wrap">{drift.aiSuggestion}</pre>
+                <pre className="text-sm whitespace-pre-wrap">{drift.aiAction}</pre>
               </div>
             </div>
 

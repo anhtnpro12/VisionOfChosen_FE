@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import {
   Dialog,
   DialogContent,
@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { History, Search, MessageSquare, Bot, User, Shield, Download, Eye, Clock } from "lucide-react"
+import dashboardApi, { AiChatSessionDto, AiChatHistoryDto } from "../api/dashboardApi";
 
 interface Message {
   id: string
@@ -39,30 +40,48 @@ interface ChatSession {
 }
 
 interface ChatHistoryViewerProps {
-  chatSessions: ChatSession[]
   onSelectChat: (chatId: string) => void
   currentChatId: string
 }
 
-export function ChatHistoryViewer({ chatSessions, onSelectChat, currentChatId }: ChatHistoryViewerProps) {
+export function ChatHistoryViewer({ onSelectChat, currentChatId }: ChatHistoryViewerProps) {
   const [open, setOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null)
   const [dateFilter, setDateFilter] = useState("all")
   const [typeFilter, setTypeFilter] = useState("all")
+  const [sessions, setSessions] = useState<AiChatSessionDto[]>([])
+  const [messages, setMessages] = useState<AiChatHistoryDto[]>([])
 
-  const selectedChat = selectedChatId ? chatSessions.find((chat) => chat.id === selectedChatId) : null
+  useEffect(() => {
+    if (open) {
+      dashboardApi.getAISessions()
+        .then(res => setSessions(res.data))
+        .catch(() => setSessions([]))
+    }
+  }, [open])
+
+  // Fetch messages when a session is selected
+  useEffect(() => {
+    if (selectedChatId) {
+      dashboardApi.getAIChatHistory(selectedChatId)
+        .then(res => setMessages(res.data))
+        .catch(() => setMessages([]))
+    } else {
+      setMessages([])
+    }
+  }, [selectedChatId])
 
   // Filter chats based on search and filters
-  const filteredChats = chatSessions.filter((chat) => {
+  const filteredChats = sessions.filter((chat) => {
     const matchesSearch =
       chat.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      chat.messages.some((msg) => msg.content.toLowerCase().includes(searchTerm.toLowerCase()))
+      chat.preview.toLowerCase().includes(searchTerm.toLowerCase())
 
     const matchesDate = (() => {
       if (dateFilter === "all") return true
       const now = new Date()
-      const chatDate = chat.lastActivity
+      const chatDate = new Date(chat.lastActivity)
 
       switch (dateFilter) {
         case "today":
@@ -82,16 +101,15 @@ export function ChatHistoryViewer({ chatSessions, onSelectChat, currentChatId }:
   })
 
   // Filter messages in selected chat
-  const filteredMessages = selectedChat
-    ? selectedChat.messages.filter((msg) => {
-        const matchesType = typeFilter === "all" || msg.type === typeFilter
-        const matchesSearch = msg.content.toLowerCase().includes(searchTerm.toLowerCase())
-        return matchesType && (searchTerm ? matchesSearch : true)
-      })
-    : []
+  const filteredMessages = messages.filter((msg) => {
+    const matchesType = typeFilter === "all" || msg.role === typeFilter
+    const matchesSearch = msg.message.toLowerCase().includes(searchTerm.toLowerCase())
+    return matchesType && (searchTerm ? matchesSearch : true)
+  })
 
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString("vi-VN", {
+  const formatDate = (date: Date | string) => {
+    const d = typeof date === "string" ? new Date(date) : date
+    return d.toLocaleDateString("vi-VN", {
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -105,6 +123,7 @@ export function ChatHistoryViewer({ chatSessions, onSelectChat, currentChatId }:
       case "user":
         return <User className="h-4 w-4" />
       case "ai":
+      case "assistant":
         return <Bot className="h-4 w-4 text-primary" />
       case "system":
         return <Shield className="h-4 w-4 text-primary" />
@@ -113,18 +132,12 @@ export function ChatHistoryViewer({ chatSessions, onSelectChat, currentChatId }:
     }
   }
 
-  const exportChat = (chat: ChatSession) => {
+  const exportChat = (chat: AiChatSessionDto) => {
     const exportData = {
       title: chat.title,
       createdAt: chat.createdAt,
       lastActivity: chat.lastActivity,
-      messageCount: chat.messages.length,
-      messages: chat.messages.map((msg) => ({
-        type: msg.type,
-        content: msg.content,
-        timestamp: msg.timestamp,
-        metadata: msg.metadata,
-      })),
+      messageCount: chat.messageCount,
     }
 
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: "application/json" })
@@ -200,25 +213,25 @@ export function ChatHistoryViewer({ chatSessions, onSelectChat, currentChatId }:
             </div>
 
             <div className="text-sm text-muted-foreground">
-              {filteredChats.length} of {chatSessions.length} conversations
+              {filteredChats.length} of {sessions.length} conversations
             </div>
 
             <ScrollArea className="h-[calc(70vh-120px)]">
               <div className="space-y-2">
                 {filteredChats
-                  .sort((a, b) => b.lastActivity.getTime() - a.lastActivity.getTime())
+                  .sort((a, b) => new Date(b.lastActivity).getTime() - new Date(a.lastActivity).getTime())
                   .map((chat) => (
                     <div
-                      key={chat.id}
+                      key={chat.sessionId}
                       className={`p-3 border rounded-lg cursor-pointer transition-colors hover:bg-muted/50 ${
-                        selectedChatId === chat.id ? "bg-muted border-primary" : ""
+                        selectedChatId === chat.sessionId ? "bg-muted border-primary" : ""
                       }`}
-                      onClick={() => setSelectedChatId(chat.id)}
+                      onClick={() => setSelectedChatId(chat.sessionId)}
                     >
                       <div className="flex items-start justify-between mb-2">
                         <h4 className="font-medium text-sm truncate">{chat.title}</h4>
                         <div className="flex items-center gap-1">
-                          {chat.id === currentChatId && (
+                          {chat.sessionId === currentChatId && (
                             <Badge variant="secondary" className="text-xs">
                               Current
                             </Badge>
@@ -228,7 +241,7 @@ export function ChatHistoryViewer({ chatSessions, onSelectChat, currentChatId }:
                             size="sm"
                             onClick={(e) => {
                               e.stopPropagation()
-                              switchToChat(chat.id)
+                              switchToChat(chat.sessionId)
                             }}
                             className="h-6 w-6 p-0"
                           >
@@ -240,10 +253,10 @@ export function ChatHistoryViewer({ chatSessions, onSelectChat, currentChatId }:
                         {chat.preview || "No messages yet"}
                       </p>
                       <div className="flex items-center justify-between text-xs text-muted-foreground">
-                        <span>{chat.messages.length} messages</span>
+                        <span>{chat.messageCount} messages</span>
                         <div className="flex items-center gap-1">
                           <Clock className="h-3 w-3" />
-                          {formatDate(chat.lastActivity)}
+                          {formatDate(new Date(chat.lastActivity))}
                         </div>
                       </div>
                     </div>
@@ -254,26 +267,41 @@ export function ChatHistoryViewer({ chatSessions, onSelectChat, currentChatId }:
 
           {/* Chat Detail Panel */}
           <div className="lg:col-span-2 space-y-4">
-            {selectedChat ? (
+            {selectedChatId ? (
               <>
                 <div className="flex items-center justify-between">
                   <div>
-                    <h3 className="font-semibold">{selectedChat.title}</h3>
+                    <h3 className="font-semibold">{sessions.find((chat) => chat.sessionId === selectedChatId)?.title}</h3>
                     <p className="text-sm text-muted-foreground">
-                      Created: {formatDate(selectedChat.createdAt)} • {selectedChat.messages.length} messages
+                      Created: {formatDate(new Date(sessions.find((chat) => chat.sessionId === selectedChatId)?.createdAt || ""))} • {sessions.find((chat) => chat.sessionId === selectedChatId)?.messageCount || 0} messages
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => switchToChat(selectedChat.id)}
-                      disabled={selectedChat.id === currentChatId}
+                      onClick={() => switchToChat(selectedChatId)}
+                      disabled={selectedChatId === currentChatId}
                     >
                       <MessageSquare className="h-4 w-4 mr-2" />
-                      {selectedChat.id === currentChatId ? "Current Chat" : "Switch to Chat"}
+                      {selectedChatId === currentChatId ? "Current Chat" : "Switch to Chat"}
                     </Button>
-                    <Button variant="outline" size="sm" onClick={() => exportChat(selectedChat)}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() =>
+                        exportChat(
+                          sessions.find((chat) => chat.sessionId === selectedChatId) || {
+                            sessionId: "",
+                            title: "",
+                            messageCount: 0,
+                            createdAt: "",
+                            lastActivity: "",
+                            preview: "",
+                          }
+                        )
+                      }
+                    >
                       <Download className="h-4 w-4 mr-2" />
                       Export
                     </Button>
@@ -282,41 +310,27 @@ export function ChatHistoryViewer({ chatSessions, onSelectChat, currentChatId }:
 
                 <Tabs defaultValue="messages" className="w-full">
                   <TabsList>
-                    <TabsTrigger value="messages">Messages ({filteredMessages.length})</TabsTrigger>
+                    <TabsTrigger value="messages">Messages ({filteredMessages?.length || 0})</TabsTrigger>
                     <TabsTrigger value="summary">Summary</TabsTrigger>
                   </TabsList>
 
                   <TabsContent value="messages" className="mt-4">
                     <ScrollArea className="h-[calc(70vh-200px)] border rounded-lg p-4">
                       <div className="space-y-4">
-                        {filteredMessages.map((message) => (
+                        {filteredMessages?.map((message) => (
                           <div key={message.id} className="flex gap-3">
                             <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
-                              {getMessageIcon(message.type)}
+                              {getMessageIcon(message.role)}
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="flex items-center gap-2 mb-1">
                                 <Badge variant="outline" className="text-xs">
-                                  {message.type}
+                                  {message.role}
                                 </Badge>
-                                <span className="text-xs text-muted-foreground">{formatDate(message.timestamp)}</span>
+                                <span className="text-xs text-muted-foreground">{formatDate(new Date(message.timestamp))}</span>
                               </div>
                               <div className="bg-card border rounded-lg p-3">
-                                <p className="text-sm">{message.content}</p>
-                                {message.metadata && (
-                                  <div className="flex gap-2 mt-2">
-                                    {message.metadata.awsRegion && (
-                                      <Badge variant="outline" className="text-xs">
-                                        {message.metadata.awsRegion}
-                                      </Badge>
-                                    )}
-                                    {message.metadata.resourceCount && (
-                                      <Badge variant="outline" className="text-xs">
-                                        {message.metadata.resourceCount} resources
-                                      </Badge>
-                                    )}
-                                  </div>
-                                )}
+                                <p className="text-sm">{message.message}</p>
                               </div>
                             </div>
                           </div>
@@ -330,25 +344,25 @@ export function ChatHistoryViewer({ chatSessions, onSelectChat, currentChatId }:
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div className="p-3 border rounded-lg text-center">
                           <div className="text-2xl font-bold text-primary">
-                            {selectedChat.messages.filter((m) => m.type === "user").length}
+                            {messages.filter((m) => m.role === "user").length || 0}
                           </div>
                           <div className="text-xs text-muted-foreground">User Messages</div>
                         </div>
                         <div className="p-3 border rounded-lg text-center">
                           <div className="text-2xl font-bold text-blue-600">
-                            {selectedChat.messages.filter((m) => m.type === "ai").length}
+                            {messages.filter((m) => m.role === "ai").length || 0}
                           </div>
                           <div className="text-xs text-muted-foreground">AI Responses</div>
                         </div>
                         <div className="p-3 border rounded-lg text-center">
                           <div className="text-2xl font-bold text-green-600">
-                            {selectedChat.messages.filter((m) => m.type === "system").length}
+                            {messages.filter((m) => m.role === "system").length || 0}
                           </div>
                           <div className="text-xs text-muted-foreground">System Messages</div>
                         </div>
                         <div className="p-3 border rounded-lg text-center">
                           <div className="text-2xl font-bold text-orange-600">
-                            {selectedChat.messages.filter((m) => m.metadata?.action === "file_upload").length}
+                            {/* {messages.filter((m) => m.metadata?.action === "file_upload").length || 0} */}
                           </div>
                           <div className="text-xs text-muted-foreground">File Uploads</div>
                         </div>
@@ -357,15 +371,15 @@ export function ChatHistoryViewer({ chatSessions, onSelectChat, currentChatId }:
                       <div className="space-y-3">
                         <h4 className="font-medium">Recent Activity</h4>
                         <div className="space-y-2">
-                          {selectedChat.messages
+                          {messages
                             .slice(-5)
                             .reverse()
                             .map((message) => (
                               <div key={message.id} className="flex items-center gap-3 p-2 bg-muted/50 rounded">
-                                {getMessageIcon(message.type)}
+                                {getMessageIcon(message.role)}
                                 <div className="flex-1 min-w-0">
-                                  <p className="text-sm truncate">{message.content}</p>
-                                  <p className="text-xs text-muted-foreground">{formatDate(message.timestamp)}</p>
+                                  <p className="text-sm truncate">{message.message}</p>
+                                  <p className="text-xs text-muted-foreground">{formatDate(new Date(message.timestamp))}</p>
                                 </div>
                               </div>
                             ))}

@@ -42,7 +42,7 @@ export default function ScanDetailPage({ params }: { params: { id: string } }) {
       },
       aiExplanation:
         "Phát hiện thay đổi cấu hình bảo mật quan trọng trên S3 bucket. Việc bật versioning và encryption là tích cực, nhưng cần kiểm tra xem có phải là thay đổi có chủ ý hay không.",
-      aiSuggestion:
+      aiAction:
         "1. Xác nhận với team DevOps về việc thay đổi này\n2. Cập nhật Terraform code để phản ánh cấu hình mới\n3. Chạy terraform plan để đồng bộ state",
     },
     {
@@ -62,7 +62,7 @@ export default function ScanDetailPage({ params }: { params: { id: string } }) {
       },
       aiExplanation:
         "EC2 instance đã được nâng cấp instance type và thêm security group mới. Có thể là do yêu cầu tăng performance hoặc thêm monitoring.",
-      aiSuggestion:
+      aiAction:
         "1. Kiểm tra lý do nâng cấp instance type\n2. Cập nhật Terraform để include security group mới\n3. Đảm bảo cost optimization sau khi nâng cấp",
     },
     {
@@ -82,7 +82,7 @@ export default function ScanDetailPage({ params }: { params: { id: string } }) {
       },
       aiExplanation:
         "Cấu hình backup và maintenance window của RDS đã được điều chỉnh. Tăng retention period là tích cực cho data protection.",
-      aiSuggestion:
+      aiAction:
         "1. Cập nhật Terraform code với cấu hình backup mới\n2. Thông báo team về thay đổi maintenance window\n3. Monitor backup costs sau khi tăng retention period",
     },
   ]

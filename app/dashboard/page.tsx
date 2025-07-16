@@ -27,10 +27,10 @@ export default function DashboardPage() {
         <AiChatInterface />
 
         {/* IaC Metrics Section */}
-        <IacMetricsSection />
+        {/* <IacMetricsSection /> */}
 
         {/* AWS Logs Section */}
-        <AwsLogsSection />
+        {/* <AwsLogsSection /> */}
 
         <UploadDialog open={uploadDialogOpen} onOpenChange={setUploadDialogOpen} />
       </div>

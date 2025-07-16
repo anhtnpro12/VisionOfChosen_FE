@@ -10,7 +10,10 @@ const inter = Inter({ subsets: ["latin"] })
 export const metadata: Metadata = {
   title: "Terraform Drift Analyzer",
   description: "AI-powered Terraform drift detection and analysis",
-    generator: 'v0.dev'
+  generator: 'v0.dev',
+  icons: {
+    icon: "/logo.png"
+  }
 }
 
 export default function RootLayout({

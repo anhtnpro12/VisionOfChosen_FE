@@ -25,7 +25,20 @@ import {
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { ChatHistoryViewer } from "@/components/chat-history-viewer"
-import dashboardApi from "../api/dashboardApi";
+import dashboardApi, { AiChatHistoryDto } from "../api/dashboardApi";
+import { v4 as uuidv4 } from 'uuid';
+// Hàm tiện ích thao tác cookie
+function setCookie(name: string, value: string, days = 30) {
+  const expires = new Date(Date.now() + days * 864e5).toUTCString();
+  document.cookie = `${name}=${encodeURIComponent(value)}; expires=${expires}; path=/`;
+}
+
+function getCookie(name: string) {
+  return document.cookie.split('; ').reduce((r, v) => {
+    const parts = v.split('=');
+    return parts[0] === name ? decodeURIComponent(parts[1]) : r
+  }, '');
+}
 
 interface Message {
   id: string
@@ -107,65 +120,7 @@ class ChatStorageService {
             metadata: { awsRegion: "us-east-1" },
           },
         ],
-      },
-      {
-        id: "chat-2",
-        title: "S3 Bucket Security Review",
-        createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
-        lastActivity: new Date(Date.now() - 23 * 60 * 60 * 1000),
-        preview: "Đã phát hiện 3 S3 buckets với cấu hình bảo mật cần cải thiện...",
-        messages: [
-          {
-            id: "1",
-            type: "system",
-            content: "Bắt đầu phân tích bảo mật S3 buckets...",
-            timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000),
-          },
-          {
-            id: "2",
-            type: "user",
-            content: "Kiểm tra cấu hình bảo mật của S3 bucket production",
-            timestamp: new Date(Date.now() - 23 * 60 * 60 * 1000),
-          },
-          {
-            id: "3",
-            type: "ai",
-            content:
-              "Đã phát hiện 3 S3 buckets với cấu hình bảo mật cần cải thiện. Bucket 'app-storage' không có encryption, bucket 'logs-backup' có public read access.",
-            timestamp: new Date(Date.now() - 23 * 60 * 60 * 1000),
-            metadata: { awsRegion: "us-east-1", resourceCount: 3 },
-          },
-        ],
-      },
-      {
-        id: "chat-3",
-        title: "Cost Optimization Analysis",
-        createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-        lastActivity: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-        preview: "Phát hiện 5 EC2 instances có thể downsize để tiết kiệm 30% chi phí...",
-        messages: [
-          {
-            id: "1",
-            type: "system",
-            content: "Khởi tạo phân tích cost optimization...",
-            timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-          },
-          {
-            id: "2",
-            type: "user",
-            content: "Phân tích chi phí EC2 instances và đưa ra gợi ý tối ưu",
-            timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-          },
-          {
-            id: "3",
-            type: "ai",
-            content:
-              "Phát hiện 5 EC2 instances có thể downsize để tiết kiệm 30% chi phí. Instance i-1234567 chạy t3.large nhưng CPU usage chỉ 15%.",
-            timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-            metadata: { awsRegion: "us-west-2", resourceCount: 12 },
-          },
-        ],
-      },
+      }
     ]
   }
 
@@ -177,7 +132,7 @@ class ChatStorageService {
 }
 
 export function AiChatInterface() {
-  const [currentChatId, setCurrentChatId] = useState("chat-1")
+  const [currentChatId, setCurrentChatId] = useState<string>("")
   const [chatSessions, setChatSessions] = useState<ChatSession[]>([])
   const [inputMessage, setInputMessage] = useState("")
   const [isConnecting, setIsConnecting] = useState(false)
@@ -188,8 +143,76 @@ export function AiChatInterface() {
 
   // Load chat sessions on component mount
   useEffect(() => {
-    const loadedSessions = ChatStorageService.loadChatSessions()
-    setChatSessions(loadedSessions)
+    // Lấy sessionId từ cookie nếu có
+    let cookieSessionId = getCookie('sessionId')
+    if (cookieSessionId) {
+      setCurrentChatId(cookieSessionId)
+      dashboardApi.getAIChatHistory(cookieSessionId)
+        .then(res => {
+          const history: AiChatHistoryDto[] = res.data
+          const messages = history.map(item => ({
+            id: item.id,
+            type: item.role,
+            content: item.message,
+            timestamp: new Date(item.timestamp),
+            metadata: undefined
+          }) as Message)
+          const chatSession = {
+            id: cookieSessionId,
+            title: "AI Chat Session",
+            createdAt: messages[0]?.timestamp || new Date(),
+            lastActivity: messages[messages.length-1]?.timestamp || new Date(),
+            preview: messages[messages.length-1]?.content || '',
+            messages
+          }
+          setChatSessions([chatSession])
+        })
+        .catch(() => {
+          setChatSessions([{
+            id: cookieSessionId,
+            title: "AI Chat Session",
+            createdAt: new Date(),
+            lastActivity: new Date(),
+            preview: '',
+            messages: []
+          }])
+        })
+    } else {
+      // Nếu không có sessionId, tạo mới
+      dashboardApi.newAIChatSession()
+        .then(res => {
+          const { session_id, message, timestamp } = res.data
+          setCookie('sessionId', session_id)
+          setCurrentChatId(session_id)
+          const newChat: ChatSession = {
+            id: session_id,
+            title: "AI Chat Session",
+            createdAt: new Date(timestamp),
+            lastActivity: new Date(timestamp),
+            preview: message,
+            messages: [
+              {
+                id: "1",
+                type: "system",
+                content: message,
+                timestamp: new Date(timestamp),
+                metadata: undefined,
+              },
+            ],
+          }
+          setChatSessions([newChat])
+        })
+        .catch(() => {
+          setChatSessions([{
+            id: "chat-error",
+            title: "AI Chat Session",
+            createdAt: new Date(),
+            lastActivity: new Date(),
+            preview: '',
+            messages: []
+          }])
+        })
+    }
   }, [])
 
   // Save chat sessions whenever they change
@@ -236,10 +259,8 @@ export function AiChatInterface() {
     setIsTyping(true)
 
     try {
-      // Hardcode sessionId và userId tạm thời
       const payload = {
         sessionId: currentChatId,
-        userId: "user-123", // hardcode
         message: inputMessage,
       }
       const response = await dashboardApi.askAI(payload)
@@ -273,38 +294,77 @@ export function AiChatInterface() {
     }
   }
 
-  const createNewChat = () => {
-    const newChatId = `chat-${Date.now()}`
-    const newChat: ChatSession = {
-      id: newChatId,
-      title: `Infrastructure Chat ${chatSessions.length + 1}`,
-      createdAt: new Date(),
-      lastActivity: new Date(),
-      preview: "AI Assistant đã sẵn sàng. Hãy upload Terraform files...",
-      messages: [
-        {
-          id: "1",
-          type: "system",
-          content: "AI Assistant đã sẵn sàng. Hãy upload Terraform files hoặc hỏi về infrastructure của bạn.",
-          timestamp: new Date(),
-          metadata: { awsRegion: "us-east-1" },
-        },
-      ],
+  const createNewChat = async () => {
+    try {
+      const res = await dashboardApi.newAIChatSession();
+      const { session_id, message, timestamp } = res.data;
+      setCookie('sessionId', session_id);
+      const newChat: ChatSession = {
+        id: session_id,
+        title: `Infrastructure Chat ${chatSessions.length + 1}`,
+        createdAt: new Date(timestamp),
+        lastActivity: new Date(timestamp),
+        preview: message,
+        messages: [
+          {
+            id: "1",
+            type: "system",
+            content: message,
+            timestamp: new Date(timestamp),
+            metadata: undefined,
+          },
+        ],
+      };
+      setChatSessions((prev) => [newChat, ...prev]);
+      setCurrentChatId(session_id);
+      setUploadedFiles([]);
+      toast({
+        title: "New chat created",
+        description: `Started \"${newChat.title}\" conversation`,
+      });
+    } catch (error) {
+      toast({
+        title: "Lỗi khi tạo session mới",
+        description: "Không thể tạo session chat mới. Vui lòng thử lại.",
+        variant: "destructive",
+      });
     }
-
-    setChatSessions((prev) => [newChat, ...prev])
-    setCurrentChatId(newChatId)
-    setUploadedFiles([])
-
-    toast({
-      title: "New chat created",
-      description: `Started "${newChat.title}" conversation`,
-    })
   }
 
-  const switchToChat = (chatId: string) => {
+  const switchToChat = async (chatId: string) => {
     setCurrentChatId(chatId)
-    setUploadedFiles([]) // Reset files when switching chats
+    setCookie('sessionId', chatId)
+    setUploadedFiles([])
+    // Fetch chat history for the selected session
+    try {
+      const res = await dashboardApi.getAIChatHistory(chatId)
+      const history: AiChatHistoryDto[] = res.data
+      const messages = history.map(item => ({
+        id: item.id,
+        type: item.role,
+        content: item.message,
+        timestamp: new Date(item.timestamp),
+        metadata: undefined
+      }) as Message)
+      const chatSession = {
+        id: chatId,
+        title: "AI Chat Session",
+        createdAt: messages[0]?.timestamp || new Date(),
+        lastActivity: messages[messages.length-1]?.timestamp || new Date(),
+        preview: messages[messages.length-1]?.content || '',
+        messages
+      }
+      setChatSessions([chatSession])
+    } catch {
+      setChatSessions([{
+        id: chatId,
+        title: "AI Chat Session",
+        createdAt: new Date(),
+        lastActivity: new Date(),
+        preview: '',
+        messages: []
+      }])
+    }
   }
 
   const deleteChatSession = (chatId: string, event: React.MouseEvent) => {
@@ -440,7 +500,7 @@ export function AiChatInterface() {
               <Plus className="h-4 w-4 mr-2" />
               New Chat
             </Button>
-            <ChatHistoryViewer chatSessions={chatSessions} onSelectChat={switchToChat} currentChatId={currentChatId} />
+            <ChatHistoryViewer onSelectChat={switchToChat} currentChatId={currentChatId} />
           </div>
         </div>
         <div className="flex items-center gap-2">
