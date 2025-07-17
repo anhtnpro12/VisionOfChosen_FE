@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   description: "AI-powered Terraform drift detection and analysis",
   generator: 'v0.dev',
   icons: {
-    icon: "/logo.png"
+    icon: "/logo-transparent.png"
   }
 }
 

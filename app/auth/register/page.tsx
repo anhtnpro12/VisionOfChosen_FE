@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Loader2, Shield } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import Image from 'next/image';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -58,11 +59,17 @@ export default function RegisterPage() {
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <div className="p-3 bg-muted rounded-full">
-              <Shield className="h-8 w-8 text-foreground" />
+            <Image
+              src="/logo-transparent.png"
+              alt="Shield Icon"
+              width={32}
+              height={32}
+              className="h-10 w-10"
+            />
             </div>
           </div>
           <CardTitle className="text-2xl font-bold">Tạo tài khoản</CardTitle>
-          <CardDescription>Đăng ký để bắt đầu sử dụng Terraform Drift Analyzer</CardDescription>
+          <CardDescription>Đăng ký để bắt đầu sử dụng Terraform Destroy Drift</CardDescription>
         </CardHeader>
         <form onSubmit={handleRegister}>
           <CardContent className="space-y-4">

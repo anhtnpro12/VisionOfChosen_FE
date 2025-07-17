@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -141,6 +141,11 @@ export function AiChatInterface() {
 
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
 
+  const messagesEndRef = useRef<HTMLDivElement | null>(null)
+
+  const currentChat = chatSessions.find((chat) => chat.id === currentChatId)
+  const messages = currentChat?.messages || []
+
   // Load chat sessions on component mount
   useEffect(() => {
     // Lấy sessionId từ cookie nếu có
@@ -222,8 +227,12 @@ export function AiChatInterface() {
     }
   }, [chatSessions])
 
-  const currentChat = chatSessions.find((chat) => chat.id === currentChatId)
-  const messages = currentChat?.messages || []
+  // Auto-scroll to bottom when messages or typing changes
+  useEffect(() => {
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
+    }
+  }, [messages, isTyping])
 
   const updateChatPreview = (chatId: string, lastMessage: Message) => {
     const preview = lastMessage.content.length > 50 ? lastMessage.content.substring(0, 50) + "..." : lastMessage.content
@@ -503,7 +512,7 @@ export function AiChatInterface() {
             <ChatHistoryViewer onSelectChat={switchToChat} currentChatId={currentChatId} />
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        {/* <div className="flex items-center gap-2">
           <Badge variant="outline" className="flex items-center gap-1">
             <Aws className="h-3 w-3" />
             AWS Connected
@@ -516,12 +525,12 @@ export function AiChatInterface() {
             <MessageSquare className="h-3 w-3" />
             {currentChat?.title || "Current Chat"}
           </Badge>
-        </div>
+        </div> */}
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Chat Messages */}
         <div className="border rounded-lg">
-          <ScrollArea className="h-80 p-4">
+          <ScrollArea className="h-[600px] p-4">
             {messages.length === 0 ? (
               <div className="text-center text-muted-foreground py-8">
                 <Bot className="h-8 w-8 mx-auto mb-2 opacity-50" />
@@ -550,7 +559,7 @@ export function AiChatInterface() {
                               : "bg-card border"
                         }`}
                       >
-                        <p className="text-sm">{message.content}</p>
+                        <p className="text-sm whitespace-pre-line">{message.content}</p>
                         {message.metadata && (
                           <div className="flex gap-2 mt-2 text-xs opacity-70">
                             {message.metadata.awsRegion && (
@@ -595,6 +604,7 @@ export function AiChatInterface() {
                     </div>
                   </div>
                 )}
+                <div ref={messagesEndRef} />
               </div>
             )}
           </ScrollArea>

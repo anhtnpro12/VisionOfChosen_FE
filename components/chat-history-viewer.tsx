@@ -330,7 +330,7 @@ export function ChatHistoryViewer({ onSelectChat, currentChatId }: ChatHistoryVi
                                 <span className="text-xs text-muted-foreground">{formatDate(new Date(message.timestamp))}</span>
                               </div>
                               <div className="bg-card border rounded-lg p-3">
-                                <p className="text-sm">{message.message}</p>
+                                <p className="text-sm whitespace-pre-line">{message.message}</p>
                               </div>
                             </div>
                           </div>

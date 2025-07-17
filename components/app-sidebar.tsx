@@ -39,7 +39,7 @@ export function AppSidebar() {
         <div className="flex items-center gap-2 px-2 py-2">
           <div className="p-2 bg-muted rounded-lg">
             <Image
-              src="/logo.png"
+              src="/logo-transparent.png"
               alt="Shield Icon"
               width={24}
               height={24}
@@ -48,7 +48,7 @@ export function AppSidebar() {
           </div>
           <div>
             <h2 className="text-lg font-semibold">Terraform</h2>
-            <p className="text-sm text-muted-foreground">Drift Analyzer</p>
+            <p className="text-sm text-muted-foreground">Destroy Drift</p>
           </div>
         </div>
       </SidebarHeader>

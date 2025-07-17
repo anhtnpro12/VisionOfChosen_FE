@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Loader2, Shield } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import Image from 'next/image';
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -40,10 +41,16 @@ export default function LoginPage() {
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <div className="p-3 bg-muted rounded-full">
-              <Shield className="h-8 w-8 text-foreground" />
+            <Image
+              src="/logo-transparent.png"
+              alt="Shield Icon"
+              width={32}
+              height={32}
+              className="h-10 w-10"
+            />
             </div>
           </div>
-          <CardTitle className="text-2xl font-bold">Terraform Drift Analyzer</CardTitle>
+          <CardTitle className="text-2xl font-bold">Terraform Destroy Drift</CardTitle>
           <CardDescription>Đăng nhập để sử dụng hệ thống phân tích drift</CardDescription>
         </CardHeader>
         <form onSubmit={handleLogin}>
