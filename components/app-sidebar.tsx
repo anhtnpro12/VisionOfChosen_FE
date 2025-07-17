@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/sidebar"
 import { LayoutDashboard, LogOut, Shield, User, FileSearch, Settings } from "lucide-react"
 import Link from "next/link"
+import Image from 'next/image';
 
 const menuItems = [
   {
@@ -37,7 +38,13 @@ export function AppSidebar() {
       <SidebarHeader>
         <div className="flex items-center gap-2 px-2 py-2">
           <div className="p-2 bg-muted rounded-lg">
-            <Shield className="h-6 w-6 text-foreground" />
+            <Image
+              src="/logo.png"
+              alt="Shield Icon"
+              width={24}
+              height={24}
+              className="h-6 w-6"
+            />
           </div>
           <div>
             <h2 className="text-lg font-semibold">Terraform</h2>

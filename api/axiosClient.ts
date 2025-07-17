@@ -4,7 +4,9 @@ const axiosClient: AxiosInstance = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_BASE_URL || "https://localhost:5000",
   headers: {
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
   },
+  withCredentials: true,
 });
 
 // Optional: interceptor xử lý lỗi hoặc thêm token nếu cần
