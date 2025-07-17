@@ -8,7 +8,7 @@ import { Toaster } from "@/components/ui/toaster"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "Terraform Drift Analyzer",
+  title: "Terraform Destroy Drift",
   description: "AI-powered Terraform drift detection and analysis",
   generator: 'v0.dev',
   icons: {
