@@ -17,10 +17,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { History, Search, MessageSquare, Bot, User, Shield, Download, Eye, Clock } from "lucide-react"
 import dashboardApi, { AiChatSessionDto, AiChatHistoryDto } from "../api/dashboardApi";
+import { MESSAGE_TYPE } from "./ai-chat-interface";
 
+type MessageType = typeof MESSAGE_TYPE[number];
 interface Message {
   id: string
-  type: "user" | "ai" | "system"
+  type: MessageType
   content: string
   timestamp: Date
   metadata?: {
@@ -120,12 +122,12 @@ export function ChatHistoryViewer({ onSelectChat, currentChatId }: ChatHistoryVi
 
   const getMessageIcon = (type: string) => {
     switch (type) {
-      case "user":
+      case MESSAGE_TYPE[0]:
         return <User className="h-4 w-4" />
-      case "ai":
+      case MESSAGE_TYPE[1]:
       case "assistant":
         return <Bot className="h-4 w-4 text-primary" />
-      case "system":
+      case MESSAGE_TYPE[2]:
         return <Shield className="h-4 w-4 text-primary" />
       default:
         return <MessageSquare className="h-4 w-4" />
@@ -204,9 +206,9 @@ export function ChatHistoryViewer({ onSelectChat, currentChatId }: ChatHistoryVi
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All types</SelectItem>
-                    <SelectItem value="user">User</SelectItem>
-                    <SelectItem value="ai">AI</SelectItem>
-                    <SelectItem value="system">System</SelectItem>
+                    <SelectItem value={MESSAGE_TYPE[0]}>User</SelectItem>
+                    <SelectItem value={MESSAGE_TYPE[1]}>AI</SelectItem>
+                    <SelectItem value={MESSAGE_TYPE[2]}>System</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -344,19 +346,19 @@ export function ChatHistoryViewer({ onSelectChat, currentChatId }: ChatHistoryVi
                       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         <div className="p-3 border rounded-lg text-center">
                           <div className="text-2xl font-bold text-primary">
-                            {messages.filter((m) => m.role === "user").length || 0}
+                            {messages.filter((m) => m.role === MESSAGE_TYPE[0]).length || 0}
                           </div>
                           <div className="text-xs text-muted-foreground">User Messages</div>
                         </div>
                         <div className="p-3 border rounded-lg text-center">
                           <div className="text-2xl font-bold text-blue-600">
-                            {messages.filter((m) => m.role === "ai").length || 0}
+                            {messages.filter((m) => m.role === MESSAGE_TYPE[1]).length || 0}
                           </div>
                           <div className="text-xs text-muted-foreground">AI Responses</div>
                         </div>
                         <div className="p-3 border rounded-lg text-center">
                           <div className="text-2xl font-bold text-green-600">
-                            {messages.filter((m) => m.role === "system").length || 0}
+                            {messages.filter((m) => m.role === MESSAGE_TYPE[2]).length || 0}
                           </div>
                           <div className="text-xs text-muted-foreground">System Messages</div>
                         </div>

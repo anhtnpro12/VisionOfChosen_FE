@@ -52,7 +52,7 @@ export function ScanHistoryTable({ scanHistory }: ScanHistoryTableProps) {
           Chưa có lịch sử quét nào được tìm thấy. Hãy thực hiện quét đầu tiên để xem dữ liệu ở đây.
         </p>
         <Button asChild>
-          <Link href="/dashboard/scan">Thực hiện quét mới</Link>
+          <Link href="/dashboard">Thực hiện quét mới</Link>
         </Button>
       </div>
     )

@@ -40,9 +40,12 @@ function getCookie(name: string) {
   }, '');
 }
 
+export const MESSAGE_TYPE = ["user", "ai", "system"] as const;
+type MessageType = typeof MESSAGE_TYPE[number];
+
 interface Message {
   id: string
-  type: "user" | "ai" | "system"
+  type: MessageType
   content: string
   timestamp: Date
   metadata?: {
@@ -245,7 +248,7 @@ export function AiChatInterface() {
 
     const userMessage: Message = {
       id: Date.now().toString(),
-      type: "user",
+      type: MESSAGE_TYPE[0],
       content: inputMessage,
       timestamp: new Date(),
     }
@@ -275,7 +278,7 @@ export function AiChatInterface() {
       const response = await dashboardApi.askAI(payload)
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
-        type: "ai",
+        type: MESSAGE_TYPE[1],
         content: response.data.message, // Nếu muốn hiển thị role: `${response.data.role}: ${response.data.message}`
         timestamp: new Date(),
         // Có thể bổ sung metadata nếu API trả về
@@ -317,7 +320,7 @@ export function AiChatInterface() {
         messages: [
           {
             id: "1",
-            type: "system",
+            type: MESSAGE_TYPE[2],
             content: message,
             timestamp: new Date(timestamp),
             metadata: undefined,
@@ -420,7 +423,7 @@ export function AiChatInterface() {
       // Add system message about file upload
       const systemMessage: Message = {
         id: Date.now().toString(),
-        type: "system",
+        type: MESSAGE_TYPE[2],
         content: `📁 Uploaded ${validFiles.length} file(s): ${validFiles.map((f) => f.name).join(", ")}`,
         timestamp: new Date(),
         metadata: { action: "file_upload" },
@@ -457,7 +460,7 @@ export function AiChatInterface() {
     setTimeout(() => {
       const systemMessage: Message = {
         id: Date.now().toString(),
-        type: "system",
+        type: MESSAGE_TYPE[2],
         content: "✅ Đã kết nối thành công với AWS Account (123456789012). Đang đồng bộ Terraform state...",
         timestamp: new Date(),
         metadata: { awsRegion: "us-east-1", resourceCount: 45 },
@@ -540,10 +543,10 @@ export function AiChatInterface() {
               <div className="space-y-4">
                 {messages.map((message) => (
                   <div key={message.id}>
-                    <div className={`flex gap-3 ${message.type === "user" ? "justify-end" : "justify-start"}`}>
-                      {(message.type === "ai" || message.type === "system") && (
+                    <div className={`flex gap-3 ${message.type === MESSAGE_TYPE[0] ? "justify-end" : "justify-start"}`}>
+                      {(message.type === MESSAGE_TYPE[1] || message.type === MESSAGE_TYPE[2]) && (
                         <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                          {message.type === "system" ? (
+                          {message.type === MESSAGE_TYPE[2] ? (
                             <Shield className="h-4 w-4 text-primary" />
                           ) : (
                             <Bot className="h-4 w-4 text-primary" />
@@ -552,9 +555,9 @@ export function AiChatInterface() {
                       )}
                       <div
                         className={`max-w-[80%] rounded-lg p-3 ${
-                          message.type === "user"
+                          message.type === MESSAGE_TYPE[0]
                             ? "bg-primary text-primary-foreground"
-                            : message.type === "system"
+                            : message.type === MESSAGE_TYPE[2]
                               ? "bg-muted border"
                               : "bg-card border"
                         }`}
@@ -576,7 +579,7 @@ export function AiChatInterface() {
                         )}
                         <p className="text-xs opacity-70 mt-1">{message.timestamp.toLocaleTimeString()}</p>
                       </div>
-                      {message.type === "user" && (
+                      {message.type === MESSAGE_TYPE[0] && (
                         <div className="w-8 h-8 rounded-full bg-muted flex items-center justify-center flex-shrink-0">
                           <User className="h-4 w-4" />
                         </div>

@@ -12,6 +12,8 @@ import { Label } from "@/components/ui/label"
 import { Loader2, Shield } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import Image from 'next/image';
+import axiosClient from '@/api/axiosClient';
+import Cookies from 'js-cookie';
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -24,15 +26,35 @@ export default function LoginPage() {
     e.preventDefault()
     setIsLoading(true)
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false)
+    try {
+      const response = await axiosClient.post('/api/Auth/login', {
+        email,
+        password,
+      });
+      const { token } = response.data;
+      if (token) {
+        Cookies.set('access_token', token, { expires: 7 }); // Lưu token 7 ngày
+        toast({
+          title: "Đăng nhập thành công",
+          description: "Chào mừng bạn quay trở lại!",
+        });
+        router.push("/dashboard");
+      } else {
+        toast({
+          title: "Đăng nhập thất bại",
+          description: "Không nhận được token từ server.",
+          variant: "destructive",
+        });
+      }
+    } catch (error: any) {
       toast({
-        title: "Đăng nhập thành công",
-        description: "Chào mừng bạn quay trở lại!",
-      })
-      router.push("/dashboard")
-    }, 1500)
+        title: "Đăng nhập thất bại",
+        description: error?.response?.data?.message || "Đã có lỗi xảy ra.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   return (

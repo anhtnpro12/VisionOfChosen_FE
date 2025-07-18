@@ -12,6 +12,7 @@ import { Label } from "@/components/ui/label"
 import { Loader2, Shield } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import Image from 'next/image';
+import axiosClient from '@/api/axiosClient';
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -38,15 +39,31 @@ export default function RegisterPage() {
 
     setIsLoading(true)
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false)
+    try {
+      const response = await axiosClient.post('/api/Auth/register', {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+      });
+      if (response.status === 200) {
+        toast({
+          title: "Đăng ký thành công",
+          description: "Bạn đã đăng ký thành công, vui lòng đăng nhập hệ thống.",
+        });
+        setTimeout(() => {
+          router.push("/auth/login");
+        }, 1500);
+      }
+    } catch (error: any) {
+      console.log(error);
       toast({
-        title: "Đăng ký thành công",
-        description: "Tài khoản của bạn đã được tạo!",
-      })
-      router.push("/dashboard")
-    }, 1500)
+        title: "Đăng ký thất bại",
+        description: error?.response?.data || "Đã có lỗi xảy ra.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   }
 
   const handleInputChange = (field: string, value: string) => {

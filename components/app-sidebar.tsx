@@ -1,3 +1,5 @@
+'use client'
+
 import {
   Sidebar,
   SidebarContent,
@@ -13,6 +15,16 @@ import {
 import { LayoutDashboard, LogOut, Shield, User, FileSearch, Settings } from "lucide-react"
 import Link from "next/link"
 import Image from 'next/image';
+import Cookies from 'js-cookie';
+import { useEffect, useState } from 'react';
+import { jwtDecode } from 'jwt-decode';
+
+interface JwtPayloadCustom {
+  email?: string;
+  user_email?: string;
+  sub?: string;
+  [key: string]: any; // Cho phép các trường khác nếu có
+}
 
 const menuItems = [
   {
@@ -32,7 +44,44 @@ const menuItems = [
   },
 ]
 
+function getEmailFromToken() {
+  try {
+    const token = Cookies.get('access_token');
+    if (!token) return null;
+    const decoded = jwtDecode<JwtPayloadCustom>(token);
+    // Thử lấy email từ các trường phổ biến
+    return decoded.name || null;
+  } catch {
+    return null;
+  }
+}
+
 export function AppSidebar() {
+  const [userEmail, setUserEmail] = useState<string | null>(null);
+
+  useEffect(() => {
+    const token = Cookies.get('access_token');
+    if (!token) {
+      window.location.href = '/auth/login';
+      return;
+    }
+    try {
+      const email = getEmailFromToken();
+      if (!email) {
+        window.location.href = '/auth/login';
+        return;
+      }
+      setUserEmail(email);
+    } catch {
+      window.location.href = '/auth/login';
+    }
+  }, []);
+
+  const handleLogout = () => {
+    Cookies.remove('access_token');
+    window.location.href = '/auth/login';
+  };
+
   return (
     <Sidebar>
       <SidebarHeader>
@@ -78,15 +127,13 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <SidebarMenuButton>
               <User className="h-4 w-4" />
-              <span>Nguyễn Văn A</span>
+              <span>{userEmail || 'Chưa đăng nhập'}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton asChild>
-              <Link href="/auth/login">
-                <LogOut className="h-4 w-4" />
-                <span>Đăng xuất</span>
-              </Link>
+            <SidebarMenuButton onClick={handleLogout}>
+              <LogOut className="h-4 w-4" />
+              <span>Đăng xuất</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
