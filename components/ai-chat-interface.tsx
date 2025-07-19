@@ -6,6 +6,7 @@ import { useState, useEffect, useRef } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea";
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
@@ -503,8 +504,7 @@ export function AiChatInterface() {
           <div className="flex items-center gap-2">
             <Bot className="h-5 w-5" />
             <div>
-              <CardTitle>AI Infrastructure Assistant</CardTitle>
-              <CardDescription>Chat với AI để phân tích và quản lý Terraform infrastructure trên AWS</CardDescription>
+              <CardTitle>AI DESTROY DRIFT</CardTitle>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -535,9 +535,15 @@ export function AiChatInterface() {
         <div className="border rounded-lg">
           <ScrollArea className="h-[600px] p-4">
             {messages.length === 0 ? (
-              <div className="text-center text-muted-foreground py-8">
-                <Bot className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p>Bắt đầu chat với AI để phân tích infrastructure!</p>
+              <div className="text-center text-muted-foreground">
+                  <img
+                    src="/logo-transparent.png"
+                    alt="Logo"
+                    className="h-14 mx-auto mb-4 opacity-90"
+                  />
+                  <p className="text-2xl font-bold tracking-wide">
+                    Xin chào bạn có Drifts nào không? <br /> Hãy để tôi Destroy nó nhé!!
+                  </p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -637,35 +643,43 @@ export function AiChatInterface() {
             )}
 
             {/* Chat Input */}
-            <div className="flex gap-2">
-              <input
-                type="file"
-                multiple
-                accept=".tfplan,.tfstate,.json,.tf"
-                onChange={(e) => handleFileUpload(e.target.files)}
-                className="hidden"
-                id="file-upload"
-              />
-              <Button variant="outline" size="sm" asChild className="flex-shrink-0">
-                <label htmlFor="file-upload" className="cursor-pointer flex items-center gap-1">
-                  <Upload className="h-4 w-4" />
-                </label>
-              </Button>
-              <Input
-                placeholder="Ask AI about infrastructure or upload files..."
+            {/* Input câu hỏi */}
+            <div className="border border-black dark:border-white/30 rounded-lg p-2 bg-white dark:bg-black/20">
+              <Textarea
+                placeholder="Ask AI about infrastructure..."
                 value={inputMessage}
                 onChange={(e) => setInputMessage(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }
+                }}
                 disabled={isTyping}
-                className="flex-1"
+                className="w-full resize-none min-h-[60px] max-h-[200px] overflow-auto border-none focus:outline-none focus:ring-0 focus-visible:ring-0"
               />
-              <Button size="sm" onClick={handleSendMessage} disabled={!inputMessage.trim() || isTyping}>
-                <Send className="h-4 w-4" />
-              </Button>
             </div>
 
-            <div className="flex justify-between items-center">
-              <div className="flex gap-2">
+            {/* Hành động bên dưới: upload, connect AWS, gửi */}
+            <div className="mt-2 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+              <div className="flex gap-2 items-center">
+                {/* Upload file */}
+                <input
+                  type="file"
+                  multiple
+                  accept=".tfplan,.tfstate,.json,.tf"
+                  onChange={(e) => handleFileUpload(e.target.files)}
+                  className="hidden"
+                  id="file-upload"
+                />
+                <Button variant="outline" size="sm" asChild>
+                  <label htmlFor="file-upload" className="cursor-pointer flex items-center gap-1">
+                    <Upload className="h-4 w-4" />
+                    Upload
+                  </label>
+                </Button>
+
+                {/* Kết nối AWS */}
                 <Button variant="outline" size="sm" onClick={connectToAWS} disabled={isConnecting}>
                   {isConnecting ? (
                     <>
@@ -680,11 +694,19 @@ export function AiChatInterface() {
                   )}
                 </Button>
               </div>
-              <p className="text-xs text-muted-foreground">
-                {uploadedFiles.length > 0
-                  ? `${uploadedFiles.length} files ready for analysis`
-                  : "Upload files and ask AI questions"}
-              </p>
+
+              {/* Trạng thái file & Gửi câu hỏi */}
+              <div className="flex gap-2 items-center justify-between w-full md:w-auto">
+            
+                <Button
+                  size="sm"
+                  onClick={handleSendMessage}
+                  disabled={!inputMessage.trim() || isTyping}
+                  className="bg-black hover:bg-zinc-900 text-white rounded-full h-10 w-10 p-0 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
         </div>

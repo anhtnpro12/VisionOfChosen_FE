@@ -12,7 +12,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
-import { LayoutDashboard, LogOut, Shield, User, FileSearch, Settings } from "lucide-react"
+import { LayoutDashboard, LogOut, Shield, User, FileSearch, Settings, Home } from "lucide-react"
 import Link from "next/link"
 import Image from 'next/image';
 import Cookies from 'js-cookie';
@@ -28,9 +28,9 @@ interface JwtPayloadCustom {
 
 const menuItems = [
   {
-    title: "Dashboard",
+    title: "Home",
     url: "/dashboard",
-    icon: LayoutDashboard,
+    icon: Home,
   },
   {
     title: "Scan Reports",
@@ -104,7 +104,6 @@ export function AppSidebar() {
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Menu chính</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
@@ -126,8 +125,10 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton>
-              <User className="h-4 w-4" />
-              <span>{userEmail || 'Chưa đăng nhập'}</span>
+              <div className="flex items-center justify-center h-8 w-8 rounded-full bg-gray-300 dark:bg-gray-700 text-black dark:text-white font-semibold text-sm">
+                {userEmail?.[0]?.toUpperCase() || "?"}
+              </div>
+              <span className="ml-2">{userEmail || "Chưa đăng nhập"}</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
           <SidebarMenuItem>

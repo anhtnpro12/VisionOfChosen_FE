@@ -16,8 +16,8 @@ export default function DashboardPage() {
         <div className="flex h-14 items-center px-4">
           <SidebarTrigger />
           <div className="ml-4">
-            <h1 className="text-xl font-semibold">Dashboard</h1>
-            <p className="text-sm text-muted-foreground">AI-powered Terraform infrastructure management</p>
+            <h1 className="text-xl font-semibold">HOME</h1>
+            <p className="text-sm text-muted-foreground">Chat với AI để phân tích và quản lý Terraform infrastructure trên AWS</p>
           </div>
         </div>
       </header>
