@@ -91,8 +91,22 @@ export interface ScanDetailResponse {
 }
 
 const dashboardApi = {
-  askAI: (data: AskAIPayload) =>
-    axiosClient.post<AIChatResponse>('/api/AIChat/ask', data),
+  askAI: (data: AskAIPayload & { files?: any[] }) =>
+    axiosClient.post<AIChatResponse>(
+      '/api/AIChat/ask',
+      data
+    ),
+  uploadFiles: (files: File[]) => {
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append('files', file);
+    });
+    return axiosClient.post('/api/FileUpload/upload-multiple', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+  },
   getAIChatHistory: (sessionId: string) =>
     axiosClient.get<AiChatHistoryDto[]>(`/api/aichathistory?sessionId=${sessionId}`),
   newAIChatSession: () => axiosClient.get<NewAIChatSessionResponse>("/api/AIChatHistory/new-session"),

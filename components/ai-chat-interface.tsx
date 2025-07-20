@@ -244,17 +244,28 @@ export function AiChatInterface() {
     setChatSessions((prev) => prev.map((chat) => (chat.id === chatId ? { ...chat, preview } : chat)))
   }
 
+  const MAX_FILE_SIZE_MB = 5;
+  const MAX_FILE_SIZE = MAX_FILE_SIZE_MB * 1024 * 1024;
+
   const handleSendMessage = async () => {
-    if (!inputMessage.trim()) return
+    if (!inputMessage.trim()) return;
+
+    if (uploadedFiles.some((file) => file.size > MAX_FILE_SIZE)) {
+      toast({
+        title: "File quá lớn",
+        description: `Mỗi file phải nhỏ hơn ${MAX_FILE_SIZE_MB}MB!`,
+        variant: "destructive",
+      });
+      return;
+    }
 
     const userMessage: Message = {
       id: Date.now().toString(),
       type: MESSAGE_TYPE[0],
       content: inputMessage,
       timestamp: new Date(),
-    }
+    };
 
-    // Update current chat with new message
     setChatSessions((prev) =>
       prev.map((chat) =>
         chat.id === currentChatId
@@ -265,25 +276,30 @@ export function AiChatInterface() {
             }
           : chat,
       ),
-    )
+    );
 
-    updateChatPreview(currentChatId, userMessage)
-    setInputMessage("")
-    setIsTyping(true)
+    updateChatPreview(currentChatId, userMessage);
+    setInputMessage("");
+    setIsTyping(true);
 
     try {
+      let uploadedFileInfos = [];
+      if (uploadedFiles.length > 0) {
+        const uploadRes = await dashboardApi.uploadFiles(uploadedFiles);
+        uploadedFileInfos = uploadRes.data;
+      }
       const payload = {
         sessionId: currentChatId,
         message: inputMessage,
-      }
-      const response = await dashboardApi.askAI(payload)
+        files: uploadedFileInfos.length > 0 ? uploadedFileInfos : undefined,
+      };
+      const response = await dashboardApi.askAI(payload);
       const aiResponse: Message = {
         id: (Date.now() + 1).toString(),
         type: MESSAGE_TYPE[1],
-        content: response.data.message, // Nếu muốn hiển thị role: `${response.data.role}: ${response.data.message}`
+        content: response.data.message,
         timestamp: new Date(),
-        // Có thể bổ sung metadata nếu API trả về
-      }
+      };
       setChatSessions((prev) =>
         prev.map((chat) =>
           chat.id === currentChatId
@@ -294,18 +310,19 @@ export function AiChatInterface() {
               }
             : chat,
         ),
-      )
-      updateChatPreview(currentChatId, aiResponse)
+      );
+      updateChatPreview(currentChatId, aiResponse);
+      setUploadedFiles([]);
     } catch (error) {
       toast({
         title: "Lỗi khi gọi AI",
         description: "Không thể lấy phản hồi từ AI. Vui lòng thử lại.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsTyping(false)
+      setIsTyping(false);
     }
-  }
+  };
 
   const createNewChat = async () => {
     try {
@@ -410,16 +427,25 @@ export function AiChatInterface() {
   }
 
   const handleFileUpload = (files: FileList | null) => {
-    if (!files) return
+    if (!files) return;
 
     const validFiles = Array.from(files).filter((file) => {
-      const validExtensions = [".tfplan", ".tfstate", ".json", ".tf"]
-      const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf("."))
-      return validExtensions.includes(fileExtension)
-    })
+      const validExtensions = [".tfplan", ".tfstate", ".json", ".tf"];
+      const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf("."));
+      if (!validExtensions.includes(fileExtension)) return false;
+      if (file.size > MAX_FILE_SIZE) {
+        toast({
+          title: "File quá lớn",
+          description: `File ${file.name} vượt quá ${MAX_FILE_SIZE_MB}MB!`,
+          variant: "destructive",
+        });
+        return false;
+      }
+      return true;
+    });
 
     if (validFiles.length > 0) {
-      setUploadedFiles((prev) => [...prev, ...validFiles])
+      setUploadedFiles((prev) => [...prev, ...validFiles]);
 
       // Add system message about file upload
       const systemMessage: Message = {
