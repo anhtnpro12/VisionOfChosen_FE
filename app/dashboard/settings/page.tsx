@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -25,12 +25,31 @@ import {
   TestTube,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
+import dashboardApi from "@/api/dashboardApi";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem
+} from "@/components/ui/select";
 
 export default function SettingsPage() {
   const { toast } = useToast()
 
   // AWS Connection Settings
-  const [awsSettings, setAwsSettings] = useState({
+  const [awsSettings, setAwsSettings] = useState<{
+    accessKeyId: string;
+    secretAccessKey: string;
+    region: string;
+    accountId: string;
+    roleArn: string;
+    sessionName: string;
+    isConnected: boolean;
+    lastConnection: string;
+    pemFile?: File;
+    pemFileInfo?: any;
+  }>({
     accessKeyId: "AKIA****************",
     secretAccessKey: "************************************",
     region: "us-east-1",
@@ -39,6 +58,8 @@ export default function SettingsPage() {
     sessionName: "terraform-drift-analyzer",
     isConnected: true,
     lastConnection: "2024-01-15 14:30:00",
+    pemFile: undefined,
+    pemFileInfo: undefined,
   })
 
   // Email Notification Settings
@@ -58,17 +79,95 @@ export default function SettingsPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [isTesting, setIsTesting] = useState(false)
 
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await dashboardApi.getSettings();
+        const data = res.data;
+        if (data.awsCredential) {
+          setAwsSettings((prev) => ({
+            ...prev,
+            accessKeyId: data.awsCredential.awsAccessKeyId || "",
+            secretAccessKey: data.awsCredential.awsSecretAccessKey || "",
+            region: data.awsCredential.awsRegion || "us-east-1",
+            pemFileInfo: data.awsCredential.pemFile || undefined,
+            pemFile: undefined,
+          }));
+        } else {
+          setAwsSettings((prev) => ({
+            ...prev,
+            accessKeyId: "",
+            secretAccessKey: "",
+            region: "us-east-1",
+            pemFileInfo: undefined,
+            pemFile: undefined,
+          }));
+        }
+        if (data.emails) {
+          setEmailSettings((prev) => ({
+            ...prev,
+            emails: data.emails,
+          }));
+        }
+      } catch (e) {
+        // ignore error
+      }
+    };
+    fetchSettings();
+  }, []);
+
+  const handlePemFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setAwsSettings((prev) => ({
+        ...prev,
+        pemFile: file as File,
+      }));
+    }
+  };
+
   const handleSaveAWSSettings = async () => {
-    setIsSaving(true)
-    // Simulate API call
-    setTimeout(() => {
-      setIsSaving(false)
+    setIsSaving(true);
+    try {
+      let pemFileInfo = awsSettings.pemFileInfo;
+      if (awsSettings.pemFile) {
+        // Upload PEM file nếu có
+        const formData = new FormData();
+        formData.append("files", awsSettings.pemFile);
+        const uploadRes = await dashboardApi.uploadFiles([awsSettings.pemFile]);
+        pemFileInfo = uploadRes.data[0];
+        setAwsSettings((prev) => ({ ...prev, pemFileInfo }));
+      }
+      // Lấy sessionId từ cookie (giống chat)
+      const getCookie = (name: string) => {
+        if (typeof document === "undefined") return "";
+        return document.cookie.split('; ').reduce((r, v) => {
+          const parts = v.split('=');
+          return parts[0] === name ? decodeURIComponent(parts[1]) : r
+        }, '');
+      };
+      const sessionId = getCookie('sessionId') || awsSettings.sessionName;
+      await dashboardApi.setAwsCredentials({
+        sessionId,
+        awsAccessKeyId: awsSettings.accessKeyId,
+        awsSecretAccessKey: awsSettings.secretAccessKey,
+        awsRegion: awsSettings.region,
+        pemFile: pemFileInfo,
+      });
       toast({
         title: "AWS Settings Saved",
         description: "Connection settings have been updated successfully",
-      })
-    }, 1500)
-  }
+      });
+    } catch (e) {
+      toast({
+        title: "Lỗi khi lưu AWS Credentials",
+        description: "Không thể lưu AWS Credentials. Vui lòng thử lại.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const handleTestAWSConnection = async () => {
     setIsTesting(true)
@@ -134,6 +233,23 @@ export default function SettingsPage() {
     }))
   }
 
+  // AWS Regions phổ biến
+  const awsRegions = [
+    { value: "us-east-1", label: "US East (N. Virginia)" },
+    { value: "us-east-2", label: "US East (Ohio)" },
+    { value: "us-west-1", label: "US West (N. California)" },
+    { value: "us-west-2", label: "US West (Oregon)" },
+    { value: "eu-west-1", label: "EU (Ireland)" },
+    { value: "eu-west-2", label: "EU (London)" },
+    { value: "eu-central-1", label: "EU (Frankfurt)" },
+    { value: "ap-southeast-1", label: "Asia Pacific (Singapore)" },
+    { value: "ap-southeast-2", label: "Asia Pacific (Sydney)" },
+    { value: "ap-northeast-1", label: "Asia Pacific (Tokyo)" },
+    { value: "ap-northeast-2", label: "Asia Pacific (Seoul)" },
+    { value: "ap-south-1", label: "Asia Pacific (Mumbai)" },
+    { value: "sa-east-1", label: "South America (São Paulo)" },
+  ];
+
   return (
     <div className="flex flex-col min-h-screen">
       <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -164,7 +280,7 @@ export default function SettingsPage() {
 
           <TabsContent value="aws" className="space-y-6">
             {/* AWS Connection Status */}
-            <Card>
+            {/* <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Shield className="h-5 w-5" />
@@ -210,7 +326,7 @@ export default function SettingsPage() {
                   </div>
                 </div>
               </CardContent>
-            </Card>
+            </Card> */}
 
             {/* AWS Credentials */}
             <Card>
@@ -253,14 +369,23 @@ export default function SettingsPage() {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="region">Default Region</Label>
-                    <Input
-                      id="region"
+                    <Select
                       value={awsSettings.region}
-                      onChange={(e) => setAwsSettings((prev) => ({ ...prev, region: e.target.value }))}
-                      placeholder="us-east-1"
-                    />
+                      onValueChange={(value) => setAwsSettings((prev) => ({ ...prev, region: value }))}
+                    >
+                      <SelectTrigger id="region">
+                        <SelectValue placeholder="Select region..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {awsRegions.map((r) => (
+                          <SelectItem key={r.value} value={r.value}>
+                            {r.label} ({r.value})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <div className="space-y-2">
+                  {/* <div className="space-y-2">
                     <Label htmlFor="roleArn">IAM Role ARN (Optional)</Label>
                     <Input
                       id="roleArn"
@@ -268,10 +393,25 @@ export default function SettingsPage() {
                       onChange={(e) => setAwsSettings((prev) => ({ ...prev, roleArn: e.target.value }))}
                       placeholder="arn:aws:iam::123456789012:role/TerraformRole"
                     />
+                  </div> */}
+                  <div className="space-y-2">
+                    <Label htmlFor="pemFile">PEM File (Optional)</Label>
+                    <Input
+                      id="pemFile"
+                      type="file"
+                      accept=".pem"
+                      onChange={handlePemFileChange}
+                    />
+                    {awsSettings.pemFile && (
+                      <div className="text-xs text-muted-foreground">Selected: {awsSettings.pemFile.name}</div>
+                    )}
+                    {awsSettings.pemFileInfo && (
+                      <div className="text-xs text-green-600">Uploaded: {awsSettings.pemFileInfo.originalFileName}</div>
+                    )}
                   </div>
                 </div>
 
-                <div className="space-y-2">
+                {/* <div className="space-y-2">
                   <Label htmlFor="sessionName">Session Name</Label>
                   <Input
                     id="sessionName"
@@ -279,7 +419,7 @@ export default function SettingsPage() {
                     onChange={(e) => setAwsSettings((prev) => ({ ...prev, sessionName: e.target.value }))}
                     placeholder="terraform-drift-analyzer"
                   />
-                </div>
+                </div> */}
 
                 <div className="flex gap-2 pt-4">
                   <Button onClick={handleTestAWSConnection} variant="outline" disabled={isTesting}>
@@ -325,7 +465,7 @@ export default function SettingsPage() {
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Enable/Disable Notifications */}
-                <div className="flex items-center justify-between">
+                {/* <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label className="text-base">Enable Email Notifications</Label>
                     <p className="text-sm text-muted-foreground">
@@ -336,7 +476,7 @@ export default function SettingsPage() {
                     checked={emailSettings.enabled}
                     onCheckedChange={(checked) => setEmailSettings((prev) => ({ ...prev, enabled: checked }))}
                   />
-                </div>
+                </div> */}
 
                 <Separator />
 
@@ -385,7 +525,7 @@ export default function SettingsPage() {
                 <Separator />
 
                 {/* Notification Types */}
-                <div className="space-y-4">
+                {/* <div className="space-y-4">
                   <Label className="text-base">Notification Types</Label>
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
@@ -448,7 +588,7 @@ export default function SettingsPage() {
                       />
                     </div>
                   </div>
-                </div>
+                </div> */}
 
                 <div className="flex justify-end pt-4">
                   <Button onClick={handleSaveEmailSettings} disabled={isSaving}>

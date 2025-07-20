@@ -113,6 +113,14 @@ const dashboardApi = {
   getAISessions: () => axiosClient.get<AiChatSessionDto[]>("/api/AIChatHistory/sessions"),
   getScanDashboard: () => axiosClient.get<ScanDashboardResponse>("/api/ScanDetail/dashboard"),
   getScanDetail: (id: string) => axiosClient.get<ScanDetailResponse>(`/api/ScanDetail/${id}`),
+  setAwsCredentials: (data: {
+    sessionId: string;
+    awsAccessKeyId: string;
+    awsSecretAccessKey: string;
+    awsRegion: string;
+    pemFile?: any;
+  }) => axiosClient.post<boolean>("/api/AIChat/set-aws-credentials", data),
+  getSettings: () => axiosClient.get("/api/Setting"),
 };
 
 export default dashboardApi;
