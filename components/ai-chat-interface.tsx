@@ -559,7 +559,7 @@ export function AiChatInterface() {
       <CardContent className="space-y-4">
         {/* Chat Messages */}
         <div className="border rounded-lg">
-          <ScrollArea className="h-[600px] p-4">
+          <ScrollArea className="h-[500px] p-4">
             {messages.length === 0 ? (
               <div className="text-center text-muted-foreground">
                   <img
