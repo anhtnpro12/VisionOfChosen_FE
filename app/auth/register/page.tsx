@@ -100,7 +100,7 @@ export default function RegisterPage() {
                 value={formData.name}
                 onChange={(e) => handleInputChange("name", e.target.value)}
                 required
-                className="bg-white/80 border border-white/80 text-white placeholder-gray-300"
+                className="bg-white/20 border border-white/80 text-white placeholder-gray-300"
               />
             </div>
             <div className="space-y-2">
@@ -112,7 +112,7 @@ export default function RegisterPage() {
                 value={formData.email}
                 onChange={(e) => handleInputChange("email", e.target.value)}
                 required
-                className="bg-white/80 border border-white/80 text-white placeholder-gray-300"
+                className="bg-white/20 border border-white/80 text-white placeholder-gray-300"
               />
             </div>
             <div className="space-y-2">
@@ -124,7 +124,7 @@ export default function RegisterPage() {
                 value={formData.password}
                 onChange={(e) => handleInputChange("password", e.target.value)}
                 required
-                className="bg-white/80 border border-white/80 text-white placeholder-gray-300"
+                className="bg-white/20 border border-white/80 text-white placeholder-gray-300"
               />
             </div>
             <div className="space-y-2">
@@ -136,7 +136,7 @@ export default function RegisterPage() {
                 value={formData.confirmPassword}
                 onChange={(e) => handleInputChange("confirmPassword", e.target.value)}
                 required
-                className="bg-white/80 border border-white/80 text-white placeholder-gray-300"
+                className="bg-white/20 border border-white/80 text-white placeholder-gray-300"
               />
             </div>
           </CardContent>

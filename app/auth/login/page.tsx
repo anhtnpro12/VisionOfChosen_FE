@@ -90,7 +90,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="bg-white/80 border border-white/80 text-white placeholder-gray-300"
+                className="bg-white/20 border border-white/80 text-white placeholder-gray-300"
               />
             </div>
             <div className="space-y-2">
@@ -102,7 +102,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="bg-white/80 border border-white/80 text-white placeholder-gray-300"
+                className="bg-white/20 border border-white/80 text-white placeholder-gray-300"
               />
             </div>
           </CardContent>
