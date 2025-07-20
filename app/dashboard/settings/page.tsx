@@ -157,6 +157,7 @@ export default function SettingsPage() {
       toast({
         title: "AWS Settings Saved",
         description: "Connection settings have been updated successfully",
+        variant: "default",
       });
     } catch (e) {
       toast({
@@ -182,6 +183,7 @@ export default function SettingsPage() {
       toast({
         title: "Connection Test Successful",
         description: "Successfully connected to AWS with current credentials",
+        variant: "default",
       })
     }, 3000)
   }
@@ -196,6 +198,7 @@ export default function SettingsPage() {
       toast({
         title: "Email Added",
         description: `${emailSettings.newEmail} has been added to notification list`,
+        variant: "default",
       })
     }
   }
@@ -208,19 +211,28 @@ export default function SettingsPage() {
     toast({
       title: "Email Removed",
       description: `${email} has been removed from notification list`,
+      variant: "default",
     })
   }
 
   const handleSaveEmailSettings = async () => {
     setIsSaving(true)
-    // Simulate API call
-    setTimeout(() => {
-      setIsSaving(false)
+    try {
+      await dashboardApi.setEmailNotifications(emailSettings.emails);
       toast({
         title: "Email Settings Saved",
         description: "Notification preferences have been updated successfully",
-      })
-    }, 1500)
+        variant: "default",
+      });
+    } catch (e) {
+      toast({
+        title: "Lỗi khi lưu Email Notifications",
+        description: "Không thể lưu Email Notifications. Vui lòng thử lại.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   const handleNotificationToggle = (key: string, value: boolean) => {

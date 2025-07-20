@@ -121,6 +121,8 @@ const dashboardApi = {
     pemFile?: any;
   }) => axiosClient.post<boolean>("/api/AIChat/set-aws-credentials", data),
   getSettings: () => axiosClient.get("/api/Setting"),
+  setEmailNotifications: (emails: string[]) =>
+    axiosClient.post("/api/AIChat/set-email-notifications", emails),
 };
 
 export default dashboardApi;
