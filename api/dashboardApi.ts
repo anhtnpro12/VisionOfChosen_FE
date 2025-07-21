@@ -123,6 +123,10 @@ const dashboardApi = {
   getSettings: () => axiosClient.get("/api/Setting"),
   setEmailNotifications: (emails: string[]) =>
     axiosClient.post("/api/AIChat/set-email-notifications", emails),
+  generateReport: async (sessionId: string): Promise<boolean> => {
+    const response = await axiosClient.post<boolean>('/api/AIChat/generate-report', { sessionId });
+    return response.data;
+  },
 };
 
 export default dashboardApi;

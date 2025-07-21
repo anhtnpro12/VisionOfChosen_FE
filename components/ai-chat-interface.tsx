@@ -27,6 +27,7 @@ import {
 import { useToast } from "@/hooks/use-toast"
 import { ChatHistoryViewer } from "@/components/chat-history-viewer"
 import dashboardApi, { AiChatHistoryDto } from "../api/dashboardApi";
+import dashboardAiApi from "../api/dashboardAiApi";
 import { v4 as uuidv4 } from 'uuid';
 // Hàm tiện ích thao tác cookie
 function setCookie(name: string, value: string, days = 30) {
@@ -231,12 +232,12 @@ export function AiChatInterface() {
     }
   }, [chatSessions])
 
-  // Auto-scroll to bottom when messages or typing changes
+  // Auto-scroll to bottom when messages hoặc typing thay đổi, chỉ scroll trong khung chat
   useEffect(() => {
     if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" })
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth", block: "end" });
     }
-  }, [messages, isTyping])
+  }, [messages, isTyping]);
 
   const updateChatPreview = (chatId: string, lastMessage: Message) => {
     const preview = lastMessage.content.length > 50 ? lastMessage.content.substring(0, 50) + "..." : lastMessage.content
@@ -283,15 +284,12 @@ export function AiChatInterface() {
     setIsTyping(true);
 
     try {
-      let uploadedFileInfos = [];
       if (uploadedFiles.length > 0) {
-        const uploadRes = await dashboardApi.uploadFiles(uploadedFiles);
-        uploadedFileInfos = uploadRes.data;
+        await dashboardAiApi.uploadTerraform(uploadedFiles);
       }
       const payload = {
         sessionId: currentChatId,
         message: inputMessage,
-        files: uploadedFileInfos.length > 0 ? uploadedFileInfos : undefined,
       };
       const response = await dashboardApi.askAI(payload);
       const aiResponse: Message = {
@@ -513,6 +511,24 @@ export function AiChatInterface() {
     }, 3000)
   }
 
+  const handleGenerateReport = async () => {
+    const sessionId = getCookie('sessionId');
+    if (!sessionId) {
+      toast({ title: 'Không tìm thấy session', description: 'Vui lòng tạo hoặc chọn một phiên chat.', variant: 'destructive' });
+      return;
+    }
+    try {
+      const result = await dashboardApi.generateReport(sessionId);
+      if (result) {
+        toast({ title: 'Tạo báo cáo thành công', description: 'Scan report đã được tạo.' });
+      } else {
+        toast({ title: 'Tạo báo cáo thất bại', description: 'Vui lòng thử lại.', variant: 'destructive' });
+      }
+    } catch (e) {
+      toast({ title: 'Lỗi khi tạo báo cáo', description: 'Vui lòng thử lại.', variant: 'destructive' });
+    }
+  };
+
   const formatTimeAgo = (date: Date) => {
     const now = new Date()
     const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / (1000 * 60))
@@ -534,9 +550,12 @@ export function AiChatInterface() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={createNewChat}>
+            <Button variant="secondary" size="sm" onClick={createNewChat}>
               <Plus className="h-4 w-4 mr-2" />
               New Chat
+            </Button>
+            <Button variant="destructive" size="sm" onClick={handleGenerateReport}>
+              Generate Report
             </Button>
             <ChatHistoryViewer onSelectChat={switchToChat} currentChatId={currentChatId} />
           </div>
