@@ -221,7 +221,7 @@ export default function SettingsPage() {
       await dashboardApi.setEmailNotifications(emailSettings.emails);
       toast({
         title: "Email Settings Saved",
-        description: "Notification preferences have been updated successfully",
+        description: "Đăng ký hoàn tất, vui truy cập email của bạn để xác nhận.",
         variant: "default",
       });
     } catch (e) {
