@@ -147,6 +147,7 @@ export function AiChatInterface() {
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
 
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
+  const fileInputRef = useRef<HTMLInputElement | null>(null)
 
   const currentChat = chatSessions.find((chat) => chat.id === currentChatId)
   const messages = currentChat?.messages || []
@@ -311,6 +312,10 @@ export function AiChatInterface() {
       );
       updateChatPreview(currentChatId, aiResponse);
       setUploadedFiles([]);
+      // Reset input file value
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     } catch (error) {
       toast({
         title: "Lỗi khi gọi AI",
@@ -346,6 +351,10 @@ export function AiChatInterface() {
       setChatSessions((prev) => [newChat, ...prev]);
       setCurrentChatId(session_id);
       setUploadedFiles([]);
+      // Reset input file value
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
       toast({
         title: "New chat created",
         description: `Started \"${newChat.title}\" conversation`,
@@ -363,6 +372,10 @@ export function AiChatInterface() {
     setCurrentChatId(chatId)
     setCookie('sessionId', chatId)
     setUploadedFiles([])
+    // Reset input file value
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
     // Fetch chat history for the selected session
     try {
       const res = await dashboardApi.getAIChatHistory(chatId)
@@ -446,37 +459,46 @@ export function AiChatInterface() {
       setUploadedFiles((prev) => [...prev, ...validFiles]);
 
       // Add system message about file upload
-      const systemMessage: Message = {
-        id: Date.now().toString(),
-        type: MESSAGE_TYPE[2],
-        content: `📁 Uploaded ${validFiles.length} file(s): ${validFiles.map((f) => f.name).join(", ")}`,
-        timestamp: new Date(),
-        metadata: { action: "file_upload" },
-      }
+      // const systemMessage: Message = {
+      //   id: Date.now().toString(),
+      //   type: MESSAGE_TYPE[2],
+      //   content: `📁 Uploaded ${validFiles.length} file(s): ${validFiles.map((f) => f.name).join(", ")}`,
+      //   timestamp: new Date(),
+      //   metadata: { action: "file_upload" },
+      // }
 
       setChatSessions((prev) =>
         prev.map((chat) =>
           chat.id === currentChatId
             ? {
                 ...chat,
-                messages: [...chat.messages, systemMessage],
+                messages: [...chat.messages],
                 lastActivity: new Date(),
               }
             : chat,
         ),
       )
 
-      updateChatPreview(currentChatId, systemMessage)
+      // updateChatPreview(currentChatId, systemMessage)
 
-      toast({
-        title: "Files uploaded successfully",
-        description: `${validFiles.length} Terraform files ready for analysis`,
-      })
+      // toast({
+      //   title: "Files uploaded successfully",
+      //   description: `${validFiles.length} Terraform files ready for analysis`,
+      // })
+    }
+
+    // Reset input file value để có thể upload lại cùng file
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   }
 
   const removeFile = (index: number) => {
     setUploadedFiles((prev) => prev.filter((_, i) => i !== index))
+    // Reset input file value khi xóa file
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   }
 
   const connectToAWS = async () => {
@@ -710,6 +732,7 @@ export function AiChatInterface() {
               <div className="flex gap-2 items-center">
                 {/* Upload file */}
                 <input
+                  ref={fileInputRef}
                   type="file"
                   multiple
                   accept=".tfplan,.tfstate,.json,.tf"
