@@ -3,7 +3,7 @@ import Cookies from 'js-cookie';
 
 const axiosClientAi: AxiosInstance = axios.create({
   baseURL: 'http://54.206.79.208:8000',
-  timeout: 10 * 60 * 1000, // 10p
+  timeout: 60 * 60 * 1000, // 60p
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
